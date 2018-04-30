@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
 import * as cssTree from 'css-tree';
-import validateAst from './validate-ast';
-import astDefListToCssOm from "./ast-to-cssom";
+import AstCssomConverter from "./ast-cssom-converter";
 import * as fs from "fs";
 
 const [, , ...args] = process.argv;
@@ -12,19 +11,21 @@ const [, , ...args] = process.argv;
 
 // const configFile = fs.readFileSync(process.cwd() + '/identt.css', 'utf8');
 const css = `
+--a: 13px;
 --background-position: 12px;
+--color: calc(12px + 16%);
 `;
 
 const ast = cssTree.parse(css, {
     context: 'declarationList',
     parseCustomProperty: true
 });
-console.log(JSON.stringify(ast));
-
+console.log(JSON.stringify(ast, null, 2));
 try {
-    validateAst(ast);
-    let cssOm = astDefListToCssOm(ast);
+    let cssOm = new AstCssomConverter(ast).getCssOm();
     console.log(cssOm);
+    /*let cssOm = AstCssomTools.astDefListToCssOm(ast);
+    console.log(cssOm);*/
 } catch (e) {
     console.error(`Config syntax error: ${e.message}.`);
 }

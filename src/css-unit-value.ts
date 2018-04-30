@@ -1,4 +1,4 @@
-import units from './units';
+import units from './css-units';
 import CSSStyleValue from './css-style-value';
 
 export default class CssUnitValue extends CSSStyleValue {
@@ -8,23 +8,25 @@ export default class CssUnitValue extends CSSStyleValue {
 
     constructor(value: number, unit: string) {
         super();
-        this.value = CssUnitValue.getFiniteNumber(value);
-        this.unit = CssUnitValue.getUnit(unit);
+        this.value = CssUnitValue.resolveValue(value);
+        this.unit = CssUnitValue.resolveUnit(unit.trim());
         this.isEmpty = false;
     }
 
-    static getFiniteNumber(value) {
+    static resolveValue(value): number {
         if (isNaN(value) || Math.abs(value) === Infinity) {
-            throw new TypeError(`Failed to set the 'value' property on 'CSSUnitValue': The provided double value is non-finite.`);
+            throw new TypeError(`Failed to set the 'value' property on 'CSSUnitValue': Invalid value ${value}`);
         }
         return Number(value);
     }
 
-    static getUnit(unit) {
-        if (!Object.keys(units).includes(unit)) {
-            throw new TypeError(`Failed to construct 'CSSUnitValue': Invalid unit: ${unit}`);
+    static resolveUnit(unit): string {
+        for (let unitKey in units) {
+            if (unit === unitKey || unit === units[unitKey]) {
+                return unitKey;
+            }
         }
-        return unit
+        throw new TypeError(`Failed to construct 'CSSUnitValue': Invalid unit ${unit}`);
     }
 
 }

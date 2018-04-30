@@ -1,6 +1,8 @@
 export default {
 	number: '',
 	percent: '%',
+
+    // <length>
 	em: 'em',
 	ex: 'ex',
 	ch: 'ch',
@@ -11,21 +13,31 @@ export default {
 	vmax: 'vmax',
 	cm: 'cm',
 	mm: 'mm',
+    Q: 'Q',
 	in: 'in',
 	pt: 'pt',
 	pc: 'pc',
 	px: 'px',
-	Q: 'Q',
+
+    // <angle>
 	deg: 'deg',
 	grad: 'grad',
 	rad: 'rad',
 	turn: 'turn',
+
+    // <time>
 	s: 's',
 	ms: 'ms',
+
+    // <frequency>
 	Hz: 'Hz',
 	kHz: 'kHz',
-	dpi: 'dpi',
+
+    // <resolution>
+    dpi: 'dpi',
 	dpcm: 'dpcm',
 	dppx: 'dppx',
+
+    // <flex>
 	fr: 'fr'
 };

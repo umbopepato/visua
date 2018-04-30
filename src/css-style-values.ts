@@ -8,9 +8,23 @@ export default class CSSStyleValues {
 
         } else {
             let valueNode = astNode.children[0];
-            if (valueNode.type === 'Dimension') {
-                return new CssUnitValue(valueNode.value, valueNode.unit);
+            switch (valueNode.type) {
+                case 'Dimension':
+                    return CSSStyleValues.fromDimension(valueNode);
+                case 'Function':
+                    return CSSStyleValues.fromFunction(valueNode);
             }
+        }
+    }
+
+    static fromDimension(node) {
+        return new CssUnitValue(node.value, node.unit);
+    }
+
+    static fromFunction(node) {
+        switch (node.name) {
+            case 'calc':
+                return new CSSStyleValue();
         }
     }
 
