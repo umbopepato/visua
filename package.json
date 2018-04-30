@@ -1,0 +1,31 @@
+{
+  "name": "identt",
+  "version": "0.0.1",
+  "description": "A powerful brand identity automation tool.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc --outDir bin"
+  },
+  "bin": {
+    "identt": "bin/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/umbopepato/identt.git"
+  },
+  "author": "Umberto Pepato",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/umbopepato/identt/issues"
+  },
+  "homepage": "https://github.com/umbopepato/identt#readme",
+  "devDependencies": {
+    "@types/node": "^9.6.6",
+    "typescript": "^2.8.3"
+  },
+  "dependencies": {
+    "color": "^3.0.0",
+    "css-tree": "^1.0.0-alpha.28"
+  }
+}
