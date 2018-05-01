@@ -1,7 +1,7 @@
 import units from './css-units';
-import CSSStyleValue from './css-style-value';
+import CSSNumericValue from "./css-numeric-value";
 
-export default class CssUnitValue extends CSSStyleValue {
+export default class CssUnitValue extends CSSNumericValue {
 
     private value: number;
     private unit: string;
@@ -10,7 +10,6 @@ export default class CssUnitValue extends CSSStyleValue {
         super();
         this.value = CssUnitValue.resolveValue(value);
         this.unit = CssUnitValue.resolveUnit(unit.trim());
-        this.isEmpty = false;
     }
 
     static resolveValue(value): number {

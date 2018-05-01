@@ -1,13 +1,12 @@
-export default class CssMathSum {
+import CSSMathValue from "./css-math-value";
 
-    private _values;
+export default class CSSMathSum extends CSSMathValue {
 
-    get values() {
-        return this._values;
-    }
+    readonly values;
 
     constructor(...values) {
-        this._values = values;
+        super();
+        this.values = values;
     }
 
 }
