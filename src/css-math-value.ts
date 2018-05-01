@@ -1,15 +1,13 @@
-import CSSNumericValue from "./css-numeric-value";
-
 enum CSSMathOperator {
-    sum = 'sum',
-    product = 'product',
-    negate = 'negate',
-    invert = 'invert',
-    min = 'min',
-    max = 'max',
+    sum,
+    product,
+    negate,
+    invert,
+    min,
+    max,
 }
 
-export default class CSSMathValue extends CSSNumericValue {
+export class CSSMathValue {
 
     readonly operator: CSSMathOperator;
 

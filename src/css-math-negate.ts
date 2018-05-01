@@ -1,6 +1,6 @@
 import {CSSMathValue} from './css-math-value';
 
-export class CSSMathInvert extends CSSMathValue {
+export class CSSMathNegate extends CSSMathValue {
 
     readonly value;
 
@@ -8,5 +8,4 @@ export class CSSMathInvert extends CSSMathValue {
         super();
         this.value = value;
     }
-
 }

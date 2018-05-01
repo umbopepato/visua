@@ -3,6 +3,7 @@
 import * as cssTree from 'css-tree';
 import AstCssomConverter from "./ast-cssom-converter";
 import * as fs from "fs";
+import CSS from "./css";
 
 const [, , ...args] = process.argv;
 
@@ -16,7 +17,7 @@ const css = `
 --color: calc(12px + 16%);
 `;
 
-const ast = cssTree.parse(css, {
+/*const ast = cssTree.parse(css, {
     context: 'declarationList',
     parseCustomProperty: true
 });
@@ -24,11 +25,13 @@ console.log(JSON.stringify(ast, null, 2));
 try {
     let cssOm = new AstCssomConverter(ast).getCssOm();
     console.log(cssOm);
-    /*let cssOm = AstCssomTools.astDefListToCssOm(ast);
-    console.log(cssOm);*/
+    /!*let cssOm = AstCssomTools.astDefListToCssOm(ast);
+    console.log(cssOm);*!/
 } catch (e) {
     console.error(`Config syntax error: ${e.message}.`);
-}
+}*/
+
+console.log(CSS.px(2).add(CSS.Hz(2)));
 
 /*
 const objectModel = ast.rules.map(rule => {

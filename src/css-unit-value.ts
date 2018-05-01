@@ -1,15 +1,15 @@
-import units from './css-units';
-import CSSNumericValue from "./css-numeric-value";
+import CSS from './css';
+import {CSSNumericValue} from './css-numeric-value';
 
-export default class CssUnitValue extends CSSNumericValue {
+export class CSSUnitValue extends CSSNumericValue {
 
     private value: number;
     private unit: string;
 
     constructor(value: number, unit: string) {
         super();
-        this.value = CssUnitValue.resolveValue(value);
-        this.unit = CssUnitValue.resolveUnit(unit.trim());
+        this.value = CSSUnitValue.resolveValue(value);
+        this.unit = CSSUnitValue.resolveUnit(unit.trim());
     }
 
     static resolveValue(value): number {
@@ -20,8 +20,8 @@ export default class CssUnitValue extends CSSNumericValue {
     }
 
     static resolveUnit(unit): string {
-        for (let unitKey in units) {
-            if (unit === unitKey || unit === units[unitKey]) {
+        for (let unitKey in CSS.units) {
+            if (unit === unitKey || unit === CSS.units[unitKey]) {
                 return unitKey;
             }
         }

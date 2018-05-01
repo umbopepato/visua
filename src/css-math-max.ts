@@ -1,13 +1,12 @@
-export default class CSSMathMax {
+import {CSSMathValue} from './css-math-value';
 
-    private readonly _values;
+export class CSSMathMax extends CSSMathValue {
 
-    get values() {
-        return this._values;
-    }
+    readonly values;
 
     constructor(...values) {
-        this._values = values;
+        super();
+        this.values = values;
     }
 
 }
