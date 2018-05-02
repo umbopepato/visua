@@ -4,21 +4,32 @@ import CSS from './css';
 
 export class CSSColorValue {
 
-    to(space: string): CSSColorValue {
-
+    to(colorSpace: string): CSSColorValue {
+        
     }
 
 }
 
 export class CSSHexColor extends CSSColorValue {
 
-    constructor(public r: string, public g: string, public b: string, public a: string) {
+    constructor(public r: string, public g: string, public b: string, public a?: string) {
         super();
+        if (![r, g, b].every((c, i, arr) => c.length === arr[0].length)) {
+            throw new TypeError(`Failed to construct 'CSSHexColor': All parameters must have the same length`);
+        }
         [r, g, b, a].forEach((c, i) => {
-            if ((i < 3 || c != null) && !c.match(/^[a-z0-9]{2}$/i)) {
+            if ((i < 3 || c != null) && !c.match(/^[a-z0-9]{1,2}$/i)) {
                 throw new TypeError(`Failed to construct 'CSSHexColor': Parameter ${c} is invalid`);
             }
         });
+    }
+
+    static fromString(hex: string): CSSHexColor {
+        let hexTrim = hex.trim();
+        let num = hexTrim.startsWith('#') ? hexTrim.substr(1) : hexTrim;
+        if (num.length === 3) {
+            return new CSSHexColor(num.charAt(0), num.charAt(1), num.charAt(2));
+        }
     }
 
     toString() {
@@ -29,14 +40,15 @@ export class CSSHexColor extends CSSColorValue {
 
 export class CSSRgbaColor extends CSSColorValue {
 
-    constructor(public r: number, public g: number, b: number, public a: number = 1) {
+    constructor(public r: number, public g: number, b: number, public a?: number) {
         super();
         [r, g, b].forEach(c => {
             if (!Number.isInteger(c) || c < 0 || c > 255) {
                 throw new TypeError(`Failed to construct 'CSSRgbaColor': Parameter ${c} is invalid`);
             }
         });
-        if (a < 0 || a > 1) {
+        if (a == null) this.a = 1;
+        if (a != null && a < 0 || a > 1) {
             throw new TypeError(`Failed to construct 'CSSRgbaColor': Parameter a is invalid`);
         }
     }
@@ -45,7 +57,7 @@ export class CSSRgbaColor extends CSSColorValue {
 
 export class CSSHslaColor extends CSSColorValue {
 
-    constructor(public h: CSSNumberish, public s: CSSUnitValue, public l: CSSUnitValue, public a: CSSNumberish = 1) {
+    constructor(public h: CSSNumberish, public s: CSSUnitValue, public l: CSSUnitValue, public a?: CSSNumberish) {
         super();
         if (h instanceof CSSUnitValue) {
             if (CSS.getUnitData(h.unit).baseType !== 'angle') {
@@ -57,6 +69,7 @@ export class CSSHslaColor extends CSSColorValue {
                 throw new TypeError(`Failed to construct 'CSSHslaColor': Argument ${c} must be a percentage`);
             }
         });
+        if (a == null) this.a = 1;
     }
 
 }
