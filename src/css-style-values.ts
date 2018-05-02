@@ -1,5 +1,5 @@
-import CSSStyleValue from "./css-style-value";
-import CssUnitValue from "./css-unit-value";
+import CSSStyleValue from './css-style-value';
+import {CSSUnitValue} from './css-unit-value';
 
 export default class CSSStyleValues {
 
@@ -18,7 +18,7 @@ export default class CSSStyleValues {
     }
 
     static fromDimension(node) {
-        return new CssUnitValue(node.value, node.unit);
+        return new CSSUnitValue(node.value, node.unit);
     }
 
     static fromFunction(node) {

@@ -4,8 +4,9 @@ import {CSSMathNegate} from './css-math-negate';
 import {CSSMathValue} from './css-math-value';
 import CSSMathProduct from './css-math-product';
 import {CSSMathInvert} from './css-math-invert';
+import CSS from './css';
 
-type CSSNumberish = CSSMathValue | CSSNumericValue | number;
+export type CSSNumberish = CSSMathValue | CSSNumericValue | number;
 type CSSNumericType = { [key: string]: number | CSSNumericBaseType };
 
 enum CSSNumericBaseType {
@@ -79,10 +80,22 @@ export class CSSNumericValue {
                 this instanceof CSSUnitValue) {
                 return value.value === this.value &&
                     value.unit === this.unit;
-            } else {
-                
             }
+            return false;
         });
+    }
+
+    to(unit: string) {
+        if (this instanceof CSSUnitValue) {
+            if (this.unit === unit) return this;
+            this.createType(unit);
+            if (CSS.areCompatible(this.unit, unit)) {
+                let currentUnitData = CSS.getUnitData(this.unit);
+                let unitData = CSS.getUnitData(unit);
+                return new CSSUnitValue((this.value * currentUnitData.toCanonical) / unitData.toCanonical, unit);
+            }
+        }
+
     }
 
     private static rectifyNumberishValue(num: CSSNumberish): CSSMathValue | CSSUnitValue | CSSNumericValue {
@@ -234,5 +247,18 @@ export class CSSNumericValue {
         } else {
             return new CSSMathInvert(value);
         }
+    }
+
+    private createType(unit: string): CSSNumericType {
+        let result = {};
+        Object.keys(CSS.units).forEach(baseType => {
+            if (Object.keys(baseType).includes(unit) ||
+                Object.values(baseType).includes(unit)) {
+                if (baseType === 'number') return result;
+                result[baseType] = 1;
+                return result;
+            }
+        });
+        throw new TypeError(`Failed to create type: Invalid unit ${unit}`);
     }
 }

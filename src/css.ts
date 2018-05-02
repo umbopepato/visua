@@ -1,49 +1,258 @@
 import {CSSUnitValue} from './css-unit-value';
 
 export default class CSS {
-    static units = {
-        number: '',
-        percent: '%',
+    static units = [
+        {
+            name: 'number',
+            symbol: '',
+            toCanonical: 1,
+            compatSet: 0,
+            baseType: 'dimensionless',
+        },
+        {
+            name: 'percent',
+            symbol: '%',
+            toCanonical: 1,
+            compatSet: 1,
+            baseType: 'dimensionless',
+        },
 
         // <length>
-        em: 'em',
-        ex: 'ex',
-        ch: 'ch',
-        rem: 'rem',
-        vw: 'vw',
-        vh: 'vh',
-        vmin: 'vmin',
-        vmax: 'vmax',
-        cm: 'cm',
-        mm: 'mm',
-        Q: 'Q',
-        in: 'in',
-        pt: 'pt',
-        pc: 'pc',
-        px: 'px',
+        {
+            name: 'px',
+            symbol: 'px',
+            toCanonical: 1,
+            compatSet: 2,
+            baseType: 'length',
+        },
+        {
+            name: 'cm',
+            symbol: 'cm',
+            toCanonical: 2.54 / 96,
+            compatSet: 2,
+            baseType: 'length',
+        },
+        {
+            name: 'mm',
+            symbol: 'mm',
+            toCanonical: 25.4 / 96,
+            compatSet: 2,
+            baseType: 'length',
+        },
+        {
+            name: 'Q',
+            symbol: 'Q',
+            toCanonical: 101.6 / 96,
+            compatSet: 2,
+            baseType: 'length',
+        },
+        {
+            name: 'in',
+            symbol: 'in',
+            toCanonical: 1 / 96,
+            compatSet: 2,
+            baseType: 'length',
+        },
+        {
+            name: 'pc',
+            symbol: 'pc',
+            toCanonical: 6 / 96,
+            compatSet: 2,
+            baseType: 'length',
+        },
+        {
+            name: 'pt',
+            symbol: 'pt',
+            toCanonical: 72 / 96,
+            compatSet: 2,
+            baseType: 'length',
+        },
+        {
+            name: 'em',
+            symbol: 'em',
+            toCanonical: 0,
+            compatSet: 3,
+            baseType: 'length',
+        },
+        {
+            name: 'ex',
+            symbol: 'ex',
+            toCanonical: 0,
+            compatSet: 4,
+            baseType: 'length',
+        },
+        {
+            name: 'ch',
+            symbol: 'ch',
+            toCanonical: 0,
+            compatSet: 5,
+            baseType: 'length',
+        },
+        {
+            name: 'ic',
+            symbol: 'ic',
+            toCanonical: 0,
+            compatSet: 6,
+            baseType: 'length',
+        },
+        {
+            name: 'rem',
+            symbol: 'rem',
+            toCanonical: 0,
+            compatSet: 7,
+            baseType: 'length',
+        },
+        {
+            name: 'lh',
+            symbol: 'lh',
+            toCanonical: 0,
+            compatSet: 8,
+            baseType: 'length',
+        },
+        {
+            name: 'rlh',
+            symbol: 'rlh',
+            toCanonical: 0,
+            compatSet: 9,
+            baseType: 'length',
+        },
+        {
+            name: 'vw',
+            symbol: 'vw',
+            toCanonical: 0,
+            compatSet: 10,
+            baseType: 'length',
+        },
+        {
+            name: 'vh',
+            symbol: 'vh',
+            toCanonical: 0,
+            compatSet: 11,
+            baseType: 'length',
+        },
+        {
+            name: 'vi',
+            symbol: 'vi',
+            toCanonical: 0,
+            compatSet: 12,
+            baseType: 'length',
+        },
+        {
+            name: 'vb',
+            symbol: 'vb',
+            toCanonical: 0,
+            compatSet: 13,
+            baseType: 'length',
+        },
+        {
+            name: 'vmin',
+            symbol: 'vmin',
+            toCanonical: 0,
+            compatSet: 14,
+            baseType: 'length',
+        },
+        {
+            name: 'vmax',
+            symbol: 'vmax',
+            toCanonical: 0,
+            compatSet: 15,
+            baseType: 'length',
+        },
 
         // <angle>
-        deg: 'deg',
-        grad: 'grad',
-        rad: 'rad',
-        turn: 'turn',
+        {
+            name: 'rad',
+            symbol: 'rad',
+            toCanonical: 1,
+            compatSet: 16,
+            baseType: 'angle',
+        },
+        {
+            name: 'deg',
+            symbol: 'deg',
+            toCanonical: 180 / Math.PI,
+            compatSet: 16,
+            baseType: 'angle',
+        },
+        {
+            name: 'grad',
+            symbol: 'grad',
+            toCanonical: 200 / Math.PI,
+            compatSet: 16,
+            baseType: 'angle',
+        },
+        {
+            name: 'turn',
+            symbol: 'turn',
+            toCanonical: 1 / (2 * Math.PI),
+            compatSet: 16,
+            baseType: 'angle',
+        },
 
         // <time>
-        s: 's',
-        ms: 'ms',
+        {
+            name: 's',
+            symbol: 's',
+            toCanonical: 1,
+            compatSet: 17,
+            baseType: 'time',
+        },
+        {
+            name: 'ms',
+            symbol: 'ms',
+            toCanonical: 1e-3,
+            compatSet: 17,
+            baseType: 'time',
+        },
 
         // <frequency>
-        Hz: 'Hz',
-        kHz: 'kHz',
+        {
+            name: 'Hz',
+            symbol: 'Hz',
+            toCanonical: 1,
+            compatSet: 18,
+            baseType: 'frequency',
+        },
+        {
+            name: 'kHz',
+            symbol: 'kHz',
+            toCanonical: 1e3,
+            compatSet: 18,
+            baseType: 'frequency',
+        },
 
         // <resolution>
-        dpi: 'dpi',
-        dpcm: 'dpcm',
-        dppx: 'dppx',
+        {
+            name: 'dppx',
+            symbol: 'dppx',
+            toCanonical: 1,
+            compatSet: 19,
+            baseType: 'resolution',
+        },
+        {
+            name: 'dpi',
+            symbol: 'dpi',
+            toCanonical: 96,
+            compatSet: 19,
+            baseType: 'resolution',
+        },
+        {
+            name: 'dpcm',
+            symbol: 'dpcm',
+            toCanonical: 96 / 2.54,
+            compatSet: 19,
+            baseType: 'resolution',
+        },
 
         // <flex>
-        fr: 'fr'
-    };
+        {
+            name: 'fr',
+            symbol: 'fr',
+            toCanonical: 1,
+            compatSet: 20,
+            baseType: 'flex',
+        },
+    ];
 
     static number(value: number): CSSUnitValue {
         return new CSSUnitValue(value, 'number');
@@ -161,4 +370,23 @@ export default class CSS {
         return new CSSUnitValue(value, 'fr');
     }
 
+    static areCompatible(unit1, unit2) {
+        let u1Data = CSS.units.find(u => u.name === unit1 || u.symbol === unit1);
+        if (u1Data == null) throw new TypeError(`Failed to convert ${unit1} to ${unit2}: Invalid unit ${unit1}`);
+        let u2Data = CSS.units.find(u => u.name === unit2 || u.symbol === unit2);
+        if (u2Data == null) throw new TypeError(`Failed to convert ${unit1} to ${unit2}: Invalid unit ${unit2}`);
+        return u1Data.compatSet === u2Data.compatSet;
+    }
+
+    static getUnitData(unit) {
+        return CSS.units.find(u => u.name === unit || u.symbol === unit);
+    }
+
+    static resolveUnit(unit: string): string {
+        let unitData = CSS.units.find(u => u.name === unit || u.symbol === unit);
+        if (!unitData) {
+            throw new TypeError(`Failed to construct 'CSSUnitValue': Invalid unit ${unit}`);
+        }
+        return unitData.name;
+    }
 }
