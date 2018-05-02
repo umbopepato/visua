@@ -1,5 +1,6 @@
 import CSSStyleValue from './css-style-value';
 import {CSSUnitValue} from './css-unit-value';
+import {CSSUrlValue} from './css-url-value';
 
 export default class CSSStyleValues {
 
@@ -13,6 +14,8 @@ export default class CSSStyleValues {
                     return CSSStyleValues.fromDimension(valueNode);
                 case 'Function':
                     return CSSStyleValues.fromFunction(valueNode);
+                case 'Url':
+                    return CSSStyleValues.fromUrl(valueNode);
             }
         }
     }
@@ -26,6 +29,10 @@ export default class CSSStyleValues {
             case 'calc':
                 return new CSSStyleValue();
         }
+    }
+
+    static fromUrl(node) {
+        return new CSSUrlValue(node.value.value);
     }
 
 }
