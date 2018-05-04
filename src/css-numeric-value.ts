@@ -1,10 +1,10 @@
+import {CSS} from './css';
 import {CSSMathSum} from './css-math-sum';
 import {CSSUnitValue} from './css-unit-value';
 import {CSSMathNegate} from './css-math-negate';
 import {CSSMathValue} from './css-math-value';
-import CSSMathProduct from './css-math-product';
+import {CSSMathProduct} from './css-math-product';
 import {CSSMathInvert} from './css-math-invert';
-import CSS from './css';
 
 export type CSSNumberish = CSSMathValue | CSSNumericValue | number;
 type CSSNumericType = { [key: string]: number | CSSNumericBaseType };

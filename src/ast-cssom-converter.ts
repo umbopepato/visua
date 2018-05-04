@@ -1,7 +1,7 @@
 import * as cssTree from 'css-tree';
-import StyleMap from './style-map';
-import CSSStyleValue from './css-style-value';
-import CSSStyleValues from './css-style-values';
+import {StyleMap} from './style-map';
+import {CSSStyleValue} from './css-style-value';
+import {CSSStyleValues} from './css-style-values';
 
 export default class AstCssomConverter {
 
@@ -9,7 +9,7 @@ export default class AstCssomConverter {
 
     constructor(private ast) {};
 
-    getCssOm() {
+    getStyleMap() {
         let cssOm = new StyleMap();
 
         this.validateAndExpandVariables();

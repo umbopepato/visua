@@ -1,6 +1,6 @@
 import {CSSUnitValue} from './css-unit-value';
 
-export default class CSS {
+export class CSS {
     static units = [
         {
             name: 'number',

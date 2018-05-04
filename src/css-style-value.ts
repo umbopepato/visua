@@ -1,3 +1,3 @@
-export default class CSSStyleValue {
+export class CSSStyleValue {
 
 }

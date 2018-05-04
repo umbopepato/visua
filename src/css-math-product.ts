@@ -1,4 +1,4 @@
-export default class CSSMathProduct {
+export class CSSMathProduct {
 
     private readonly _values;
 
