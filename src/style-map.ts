@@ -1,10 +1,10 @@
-import CSSStyleValue from './css-style-value';
+import {CSSStyleValue} from './css-style-value';
 
 export class StyleMap {
 
     private map = {};
 
-    get(property: string) {
+    get(property: string): CSSStyleValue {
         if (!this.map.hasOwnProperty(property)) return;
         return this.map[property];
     }
