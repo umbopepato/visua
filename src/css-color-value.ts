@@ -32,6 +32,28 @@ export abstract class CSSColorValue {
         }
         return [h, s, l];
     }
+    
+    protected static hslToRgbNumeric(h, s, l){
+        let r, g, b;
+        if (s === 0) {
+            r = g = b = l;
+        } else {
+            const hue2rgb = function hue2rgb(p, q, t){
+                if(t < 0) t += 1;
+                if(t > 1) t -= 1;
+                if(t < 1/6) return p + (q - p) * 6 * t;
+                if(t < 1/2) return q;
+                if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+            let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            let p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1/3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1/3);
+        }
+        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    }
 
     protected static resolveNumericAlpha(alpha?: number | CSSUnitValue): number {
         if (alpha == null) return 1;
@@ -56,7 +78,7 @@ export class CSSHexColor extends CSSColorValue {
             throw new TypeError(`Failed to construct 'CSSHexColor': Arguments don't have the same length`);
         }
         [r, g, b, a].forEach((c, i) => {
-            if ((i < 3 || c != null) && !c.match(/^[a-z0-9]{1,2}$/i)) {
+            if ((i < 3 || c != null) && !c.match(/^[a-f0-9]{1,2}$/i)) {
                 throw new TypeError(`Failed to construct 'CSSHexColor': Argument ${c} is invalid`);
             }
         });
@@ -121,22 +143,19 @@ export class CSSRgbaColor extends CSSColorValue {
     readonly b: number;
     readonly a: number;
 
-    constructor(...args) {
+    constructor(r: number | CSSUnitValue, g: number | CSSUnitValue, b: number | CSSUnitValue, a?: number | CSSUnitValue,) {
         super();
-        if (args.length < 3) {
-            throw new TypeError(`Failed to construct 'CSSRgbaColor': Too few arguments, at least 3 are required`);
-        }
-        args.forEach(c => {
+        [r, g, b, a].forEach(c => {
             if (c instanceof CSSUnitValue) {
                 if (CSS.getUnitData(c.unit).baseType !== 'percent') {
                     throw new TypeError(`Failed to construct 'CSSRgbaColor': Arguments r, g, b and a must be numbers or percentages`);
                 }
             }
         });
-        this.r = CSSRgbaColor.resolveRgbComponent(args[0]);
-        this.g = CSSRgbaColor.resolveRgbComponent(args[1]);
-        this.b = CSSRgbaColor.resolveRgbComponent(args[2]);
-        this.a = CSSColorValue.resolveNumericAlpha(args[3]);
+        this.r = CSSRgbaColor.resolveRgbComponent(r);
+        this.g = CSSRgbaColor.resolveRgbComponent(g);
+        this.b = CSSRgbaColor.resolveRgbComponent(b);
+        this.a = CSSColorValue.resolveNumericAlpha(a);
     }
 
     private static resolveRgbComponent(comp: number | CSSUnitValue): number {
@@ -204,8 +223,17 @@ export class CSSHslaColor extends CSSColorValue {
         return comp;
     }
 
-    to(colorSpace: string): CSSColorValue {
-        return undefined;
+    to(notation: string): CSSColorValue {
+        const [r, g, b] = CSSHslaColor.hslToRgbNumeric(this.h, this.s, this.l);
+        switch (notation) {
+            case 'hex':
+                return new CSSHexColor(
+                    ...[r, g, b, this.a].map(c => c.toString(16)),
+                );
+            case 'rgb':
+            case 'rgba':
+                return new CSSRgbaColor(r, g, b, this.a);
+        }
     }
 
 }

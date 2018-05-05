@@ -53,7 +53,7 @@ export class CSSStyleValues {
                                 case 'Percentage':
                                     return CSSStyleValues.fromPercentage(c);
                             }
-                        });
+                        })
                 );
 
         }
