@@ -4,6 +4,7 @@
   "description": "A powerful brand identity automation tool.",
   "main": "index.js",
   "scripts": {
+    "start": "node ./bin/main.js",
     "test": "ts-mocha -p ./ src/test/**/*.spec.ts",
     "build": "tsc"
   },

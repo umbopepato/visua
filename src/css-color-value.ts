@@ -10,6 +10,9 @@ export abstract class CSSColorValue {
     abstract to(notation: string): CSSColorValue;
 
     protected static rgbToHslNumeric(r: number, g: number, b: number): number[] {
+        r /= 255;
+        g /= 255;
+        b /= 255;
         let max = Math.max(r, g, b), min = Math.min(r, g, b);
         let h, s, l = (max + min) / 2;
         if (max == min) {
@@ -32,25 +35,29 @@ export abstract class CSSColorValue {
         }
         return [h, s, l];
     }
-    
-    protected static hslToRgbNumeric(h, s, l){
+
+    private static hueToRgb(p: number, q: number, t: number): number {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+    }
+
+    protected static hslToRgbNumeric(h: number, s: number, l: number): number[] {
+        h /= 360;
+        s /= 100;
+        l /= 100;
         let r, g, b;
-        if (s === 0) {
+        if (s == 0) {
             r = g = b = l;
         } else {
-            const hue2rgb = function hue2rgb(p, q, t){
-                if(t < 0) t += 1;
-                if(t > 1) t -= 1;
-                if(t < 1/6) return p + (q - p) * 6 * t;
-                if(t < 1/2) return q;
-                if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-                return p;
-            };
             let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
             let p = 2 * l - q;
-            r = hue2rgb(p, q, h + 1/3);
-            g = hue2rgb(p, q, h);
-            b = hue2rgb(p, q, h - 1/3);
+            r = CSSColorValue.hueToRgb(p, q, h + 1 / 3);
+            g = CSSColorValue.hueToRgb(p, q, h);
+            b = CSSColorValue.hueToRgb(p, q, h - 1 / 3);
         }
         return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
     }
@@ -120,13 +127,13 @@ export class CSSHexColor extends CSSColorValue {
                 );
             case 'hsl':
             case 'hsla':
-                const r = Number(`0x${this.r}`) / 255;
-                const g = Number(`0x${this.g}`) / 255;
-                const b = Number(`0x${this.b}`) / 255;
+                const r = Number(`0x${this.r}`);
+                const g = Number(`0x${this.g}`);
+                const b = Number(`0x${this.b}`);
                 const a = Number(`0x${this.a}`);
                 const hslNumeric = CSSColorValue.rgbToHslNumeric(r, g, b);
                 return new CSSHslaColor(
-                    hslNumeric[0],
+                    hslNumeric[0] * 360,
                     new CSSUnitValue(hslNumeric[1] * 100, 'percent'),
                     new CSSUnitValue(hslNumeric[2] * 100, 'percent'),
                     a,
@@ -143,7 +150,7 @@ export class CSSRgbaColor extends CSSColorValue {
     readonly b: number;
     readonly a: number;
 
-    constructor(r: number | CSSUnitValue, g: number | CSSUnitValue, b: number | CSSUnitValue, a?: number | CSSUnitValue,) {
+    constructor(r: number | CSSUnitValue, g: number | CSSUnitValue, b: number | CSSUnitValue, a?: number | CSSUnitValue) {
         super();
         [r, g, b, a].forEach(c => {
             if (c instanceof CSSUnitValue) {
@@ -169,13 +176,13 @@ export class CSSRgbaColor extends CSSColorValue {
         switch (notation) {
             case 'hex':
                 return new CSSHexColor(
-                    ...[this.r, this.g, this.b, this.a].map(c => c.toString(16)),
+                    ...[this.r, this.g, this.b, this.a * 255].map(c => c.toString(16)),
                 );
             case 'hsl':
             case 'hsla':
                 const hslNumeric = CSSColorValue.rgbToHslNumeric(this.r, this.g, this.b);
                 return new CSSHslaColor(
-                    hslNumeric[0],
+                    hslNumeric[0] * 360,
                     new CSSUnitValue(hslNumeric[1] * 100, 'percent'),
                     new CSSUnitValue(hslNumeric[2] * 100, 'percent'),
                     this.a,
@@ -224,11 +231,15 @@ export class CSSHslaColor extends CSSColorValue {
     }
 
     to(notation: string): CSSColorValue {
-        const [r, g, b] = CSSHslaColor.hslToRgbNumeric(this.h, this.s, this.l);
+        const [r, g, b] = CSSHslaColor.hslToRgbNumeric(
+            this.h.value,
+            this.s.value,
+            this.l.value,
+        );
         switch (notation) {
             case 'hex':
                 return new CSSHexColor(
-                    ...[r, g, b, this.a].map(c => c.toString(16)),
+                    ...[r, g, b, this.a * 255].map(c => c.toString(16)),
                 );
             case 'rgb':
             case 'rgba':
