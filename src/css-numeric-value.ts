@@ -1,14 +1,11 @@
 import {CSS} from './css';
 import {CSSMathSum} from './css-math-sum';
 import {CSSUnitValue} from './css-unit-value';
-import {CSSMathNegate} from './css-math-negate';
 import {CSSMathValue} from './css-math-value';
-import {CSSMathProduct} from './css-math-product';
-import {CSSMathInvert} from './css-math-invert';
+import {CSSStyleValue} from './css-style-value';
 
 export type CSSNumberish = CSSMathValue | CSSNumericValue | number;
 type CSSNumericType = { [key: string]: number | CSSNumericBaseType };
-
 enum CSSNumericBaseType {
     length = 'length',
     angle = 'angle',
@@ -19,7 +16,7 @@ enum CSSNumericBaseType {
     percent = 'percent',
 }
 
-export class CSSNumericValue {
+export class CSSNumericValue extends CSSStyleValue {
 
     type: CSSNumericType = {};
 
@@ -139,7 +136,7 @@ export class CSSNumericValue {
     }
 
     private addTypes(types: CSSNumericType[]): CSSNumericType {
-        types.reduce((type1, type2) => {
+        return types.reduce((type1, type2) => {
             let finalType: CSSNumericType = {};
 
             if (type1.percentHint != null) {
@@ -251,14 +248,81 @@ export class CSSNumericValue {
 
     private createType(unit: string): CSSNumericType {
         let result = {};
-        Object.keys(CSS.units).forEach(baseType => {
-            if (Object.keys(baseType).includes(unit) ||
-                Object.values(baseType).includes(unit)) {
-                if (baseType === 'number') return result;
-                result[baseType] = 1;
-                return result;
-            }
-        });
+        const unitData = CSS.getUnitData(unit);
+        if (unitData != null) {
+            if (unitData.baseType === 'number') return result;
+            result[unitData.baseType] = 1;
+            return result;
+        }
         throw new TypeError(`Failed to create type: Invalid unit ${unit}`);
     }
+}
+
+class CSSMathInvert extends CSSMathValue {
+
+    readonly value;
+
+    constructor(value) {
+        super();
+        this.value = value;
+    }
+
+}
+
+class CSSMathMax extends CSSMathValue {
+
+    readonly values;
+
+    constructor(...values) {
+        super();
+        this.values = values;
+    }
+
+}
+
+class CSSMathMin extends CSSMathValue {
+
+    readonly values;
+
+    constructor(...values) {
+        super();
+        this.values = values;
+    }
+
+}
+
+class CSSMathNegate extends CSSMathValue {
+
+    readonly value;
+
+    constructor(value) {
+        super();
+        this.value = value;
+    }
+}
+
+class CSSMathProduct extends CSSMathValue {
+
+    private readonly _values;
+
+    get values() {
+        return this._values;
+    }
+
+    constructor(...values) {
+        super();
+        this._values = values;
+    }
+
+}
+
+class CSSMathSum extends CSSMathValue {
+
+    readonly values;
+
+    constructor(values) {
+        super();
+        this.values = values;
+    }
+
 }

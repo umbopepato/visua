@@ -1,11 +1,10 @@
 import {CSS} from './css';
 import {CSSUnitValue} from './css-unit-value';
-import {CSSNumberish} from './css-numeric-value';
 import {CSSStyleValue} from './css-style-value';
 
 // Because of TypeScript issue #4130 the spread operator
 // in function parameters is considered an error
-export abstract class CSSColorValue {
+export abstract class CSSColorValue extends CSSStyleValue {
 
     abstract to(notation: string): CSSColorValue;
 

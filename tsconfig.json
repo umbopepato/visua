@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es5",
+    "target": "es6",
     "sourceMap": true,
     "moduleResolution": "node",
     "noEmitOnError": false,
@@ -11,6 +11,6 @@
     "src/**/*"
   ],
   "exclude": [
-    "src/**/*.spec.ts"
+    "test/**/*.spec.ts"
   ]
 }

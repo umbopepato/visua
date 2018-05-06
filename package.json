@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./bin/main.js",
-    "test": "ts-mocha -p ./ src/test/**/*.spec.ts",
+    "test": "ts-mocha -p ./ test/**/*.spec.ts",
     "build": "tsc"
   },
   "bin": {
@@ -32,6 +32,8 @@
     "typescript": "^2.8.3"
   },
   "dependencies": {
+    "chalk": "^2.4.1",
+    "commander": "^2.15.1",
     "css-tree": "^1.0.0-alpha.28"
   }
 }

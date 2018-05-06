@@ -1,3 +1,5 @@
+import {CSSNumericValue} from './css-numeric-value';
+
 enum CSSMathOperator {
     sum,
     product,
@@ -7,8 +9,6 @@ enum CSSMathOperator {
     max,
 }
 
-export class CSSMathValue {
-
+export class CSSMathValue extends CSSNumericValue {
     readonly operator: CSSMathOperator;
-
 }

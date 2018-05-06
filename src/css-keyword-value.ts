@@ -1,5 +1,9 @@
-export class CSSKeywordValue {
+import {CSSStyleValue} from './css-style-value';
 
-    constructor(public value: string) {}
+export class CSSKeywordValue extends CSSStyleValue {
+
+    constructor(public value: string) {
+        super();
+    }
 
 }
