@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "lib": [ "es2016" ],
     "target": "es6",
     "sourceMap": true,
     "moduleResolution": "node",
     "noEmitOnError": false,
-    "outDir": "bin"
+    "outDir": "dist"
   },
   "include": [
     "src/**/*"
