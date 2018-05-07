@@ -1,5 +1,9 @@
 import {CSSStyleValue} from './css-style-value';
 
+export class StyleMapEntry {
+    constructor(public name: string, public value: CSSStyleValue) {}
+}
+
 export class StyleMap {
 
     private map = {};
@@ -9,14 +13,15 @@ export class StyleMap {
         return this.map[property];
     }
 
-    getSimilar(property: RegExp) {
+    getAll(properties: string[]): StyleMapEntry[] {
+        return Object.keys(this.map)
+            .filter(k => properties.includes(k))
+            .map(k => new StyleMapEntry(k, this.map[k]));
+    }
+
+    getSimilar(property: RegExp): StyleMapEntry[] {
         let foundKeys = Object.keys(this.map).filter(k => k.match(property) != null);
-        return foundKeys.map(k => {
-            return {
-                name: k,
-                value: this.map[k],
-            }
-        });
+        return foundKeys.map(k => new StyleMapEntry(k, this.map[k]));
     }
 
     set(property: string, value: CSSStyleValue) {

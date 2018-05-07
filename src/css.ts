@@ -2,6 +2,7 @@ import {CSSUnitValue} from './css-unit-value';
 
 export class CSS {
     static units = [
+        // <dimensionless>
         {
             name: 'number',
             symbol: '',
@@ -28,42 +29,42 @@ export class CSS {
         {
             name: 'cm',
             symbol: 'cm',
-            toCanonical: 2.54 / 96,
+            toCanonical: 96 / 2.54,
             compatSet: 2,
             baseType: 'length',
         },
         {
             name: 'mm',
             symbol: 'mm',
-            toCanonical: 25.4 / 96,
+            toCanonical: 96 / 25.4,
             compatSet: 2,
             baseType: 'length',
         },
         {
             name: 'Q',
             symbol: 'Q',
-            toCanonical: 101.6 / 96,
+            toCanonical: 96 / 101.6,
             compatSet: 2,
             baseType: 'length',
         },
         {
             name: 'in',
             symbol: 'in',
-            toCanonical: 1 / 96,
+            toCanonical: 96,
             compatSet: 2,
             baseType: 'length',
         },
         {
             name: 'pc',
             symbol: 'pc',
-            toCanonical: 6 / 96,
+            toCanonical: 96 / 6,
             compatSet: 2,
             baseType: 'length',
         },
         {
             name: 'pt',
             symbol: 'pt',
-            toCanonical: 72 / 96,
+            toCanonical: 96 / 72,
             compatSet: 2,
             baseType: 'length',
         },

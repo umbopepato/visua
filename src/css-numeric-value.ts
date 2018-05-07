@@ -1,11 +1,10 @@
 import {CSS} from './css';
-import {CSSMathSum} from './css-math-sum';
 import {CSSUnitValue} from './css-unit-value';
-import {CSSMathValue} from './css-math-value';
 import {CSSStyleValue} from './css-style-value';
 
-export type CSSNumberish = CSSMathValue | CSSNumericValue | number;
+export type CSSNumberish = CSSNumericValue | number;
 type CSSNumericType = { [key: string]: number | CSSNumericBaseType };
+
 enum CSSNumericBaseType {
     length = 'length',
     angle = 'angle',
@@ -20,11 +19,15 @@ export class CSSNumericValue extends CSSStyleValue {
 
     type: CSSNumericType = {};
 
-    add(...values: CSSNumberish[]) {
+    add(...values: CSSNumberish[]): CSSNumericValue {
         let rectifiedValues = values.map(this.rectifyNumberishValue);
-        rectifiedValues.unshift(this);
-        if (rectifiedValues.every(item => item instanceof CSSUnitValue)) {
-            if (rectifiedValues.every((val, i, arr) => val === arr[0])) {
+        if (this instanceof CSSMathSum) {
+            this.values.unshift(rectifiedValues);
+        } else {
+            rectifiedValues.unshift(this);
+        }
+        if (rectifiedValues.every(i => i instanceof CSSUnitValue)) {
+            if (rectifiedValues.every((val, i, arr) => val.unit === arr[0].unit)) {
                 return new CSSUnitValue(
                     rectifiedValues.map(item => item.value)
                         .reduce((acc, val) => acc + val),
@@ -32,60 +35,114 @@ export class CSSNumericValue extends CSSStyleValue {
                 );
             }
         }
-        this.addTypes(rectifiedValues.map(item => item.type));
+        this.addTypes(rectifiedValues.map(i => i.type));
         return new CSSMathSum(rectifiedValues);
     }
 
-    sub(...values: CSSNumberish[]) {
+    sub(...values: CSSNumberish[]): CSSNumericValue {
         let rectifiedValues = values.map(this.rectifyNumberishValue);
-        return this.add(this, ...rectifiedValues.map(this.negate));
+        return this.add(...rectifiedValues.map(this.negate));
     }
 
-    mul(...values: CSSNumberish[]) {
+    mul(...values: CSSNumberish[]): CSSNumericValue {
         let rectifiedValues = values.map(this.rectifyNumberishValue);
-        if (rectifiedValues.every(item => item instanceof CSSUnitValue)) {
+        if (this instanceof CSSMathProduct) {
+            this.values.unshift(rectifiedValues);
+        } else {
+            rectifiedValues.unshift(this);
+        }
+        if (rectifiedValues.every(i => i instanceof CSSUnitValue)) {
             let numberValues = rectifiedValues.filter(val => val.unit === 'number');
             let nonNumberValues = rectifiedValues.filter(val => val.unit !== 'number');
-            if (numberValues.length === rectifiedValues.length) {
-                return new CSSUnitValue(
-                    rectifiedValues.map(item => item.value)
-                        .reduce((acc, val) => acc * val),
-                    'number',
-                );
-            } else if (numberValues.length === rectifiedValues.length - 1 &&
+            if (numberValues.length === rectifiedValues.length - 1 &&
                 nonNumberValues.length === 1) {
                 return new CSSUnitValue(
-                    rectifiedValues.map(item => item.value)
+                    rectifiedValues.map(i => i.value)
                         .reduce((acc, val) => acc * val),
                     nonNumberValues[0].unit,
                 );
             }
         }
-        this.multiplyTypes(rectifiedValues.map(item => item.type));
+        this.multiplyTypes(rectifiedValues.map(i => i.type));
         return new CSSMathProduct(rectifiedValues);
     }
 
-    div(...values: CSSNumberish[]) {
+    div(...values: CSSNumberish[]): CSSNumericValue {
         let rectifiedValues = values.map(this.rectifyNumberishValue);
-        return this.mul(this, ...rectifiedValues.map(this.invert));
+        return this.mul(...rectifiedValues.map(this.invert));
     }
 
-    equals(...values: CSSNumberish[]) {
+    min(...values: CSSNumberish[]): CSSNumericValue {
         let rectifiedValues = values.map(this.rectifyNumberishValue);
-        return values.every(value => {
-            if (value instanceof CSSUnitValue &&
+        if (this instanceof CSSMathMin) {
+            this.values.unshift(rectifiedValues);
+        } else {
+            rectifiedValues.unshift(this);
+        }
+        if (rectifiedValues.every(i => i instanceof CSSUnitValue)) {
+            if (rectifiedValues.every((val, i, arr) => val.unit === arr[0].unit)) {
+                return new CSSUnitValue(
+                    Math.min(...rectifiedValues.map(item => item.value)),
+                    this.unit,
+                );
+            }
+        }
+        this.addTypes(rectifiedValues.map(i => i.type));
+        return new CSSMathMin(rectifiedValues);
+    }
+
+    max(...values: CSSNumberish[]): CSSNumericValue {
+        let rectifiedValues = values.map(this.rectifyNumberishValue);
+        if (this instanceof CSSMathMax) {
+            this.values.unshift(rectifiedValues);
+        } else {
+            rectifiedValues.unshift(this);
+        }
+        if (rectifiedValues.every(i => i instanceof CSSUnitValue)) {
+            if (rectifiedValues.every((val, i, arr) => val.unit === arr[0].unit)) {
+                return new CSSUnitValue(
+                    Math.max(...rectifiedValues.map(item => item.value)),
+                    this.unit,
+                );
+            }
+        }
+        this.addTypes(rectifiedValues.map(i => i.type));
+        return new CSSMathMax(rectifiedValues);
+    }
+
+    equals(...values: CSSNumberish[]): boolean {
+        let rectifiedValues = values.map(this.rectifyNumberishValue);
+        return values.every(val => {
+            if (val instanceof CSSUnitValue &&
                 this instanceof CSSUnitValue) {
-                return value.value === this.value &&
-                    value.unit === this.unit;
+                return val.value === this.value &&
+                    val.unit === this.unit;
+            }
+            if ((val instanceof CSSMathSum &&
+                this instanceof CSSMathSum) ||
+                (val instanceof CSSMathProduct &&
+                    this instanceof CSSMathProduct) ||
+                (val instanceof CSSMathMin &&
+                    this instanceof CSSMathMin) ||
+                (val instanceof CSSMathMax &&
+                    this instanceof CSSMathMax)) {
+                if (val.values.length !== this.values.length) return false;
+                return !this.values.every((v, i) => v !== val.values[i]);
+            }
+            if ((val instanceof CSSMathNegate &&
+                this instanceof CSSMathNegate) ||
+                (val instanceof CSSMathInvert &&
+                    this instanceof CSSMathInvert)) {
+                return val.value === this.value;
             }
             return false;
         });
     }
 
-    to(unit: string) {
+    to(unit: string): CSSUnitValue {
+        let type = this.createType(unit);
         if (this instanceof CSSUnitValue) {
             if (this.unit === unit) return this;
-            this.createType(unit);
             if (CSS.areCompatible(this.unit, unit)) {
                 let currentUnitData = CSS.getUnitData(this.unit);
                 let unitData = CSS.getUnitData(unit);
@@ -95,8 +152,8 @@ export class CSSNumericValue extends CSSStyleValue {
 
     }
 
-    private rectifyNumberishValue(num: CSSNumberish): CSSMathValue | CSSUnitValue | CSSNumericValue {
-        if (num instanceof CSSMathValue || num instanceof CSSNumericValue) {
+    private rectifyNumberishValue(num: CSSNumberish): CSSUnitValue | CSSNumericValue {
+        if (num instanceof CSSNumericValue) {
             return num;
         }
         return new CSSUnitValue(num, 'number');
@@ -188,7 +245,7 @@ export class CSSNumericValue extends CSSStyleValue {
     }
 
     private multiplyTypes(types: CSSNumericType[]): CSSNumericType {
-        types.reduce((type1, type2) => {
+        return types.reduce((type1, type2) => {
             let finalType: CSSNumericType = {};
 
             if (type1.percentHint != null) {
@@ -220,7 +277,7 @@ export class CSSNumericValue extends CSSStyleValue {
         });
     }
 
-    private negate(value: CSSUnitValue | CSSMathValue | CSSNumericValue) {
+    private negate(value: CSSNumericValue): CSSNumberish {
         if (value instanceof CSSUnitValue) {
             return new CSSUnitValue(-value.value, value.unit);
         } else if (value instanceof CSSMathNegate) {
@@ -230,7 +287,7 @@ export class CSSNumericValue extends CSSStyleValue {
         }
     }
 
-    private invert(value: CSSUnitValue | CSSMathValue | CSSNumericValue) {
+    private invert(value: CSSNumericValue): CSSNumberish {
         if (value instanceof CSSUnitValue) {
             if (value.unit === 'number') {
                 if (value.value == 0) {
@@ -246,16 +303,29 @@ export class CSSNumericValue extends CSSStyleValue {
         }
     }
 
-    private createType(unit: string): CSSNumericType {
+    protected createType(unit: string): CSSNumericType {
         let result = {};
         const unitData = CSS.getUnitData(unit);
         if (unitData != null) {
-            if (unitData.baseType === 'number') return result;
+            if (unitData.name === 'number') return result;
             result[unitData.baseType] = 1;
             return result;
         }
         throw new TypeError(`Failed to create type: Invalid unit ${unit}`);
     }
+}
+
+enum CSSMathOperator {
+    sum,
+    product,
+    negate,
+    invert,
+    min,
+    max,
+}
+
+class CSSMathValue extends CSSNumericValue {
+    readonly operator: CSSMathOperator;
 }
 
 class CSSMathInvert extends CSSMathValue {
