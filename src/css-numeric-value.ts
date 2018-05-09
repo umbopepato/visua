@@ -3,9 +3,8 @@ import {CSSUnitValue} from './css-unit-value';
 import {CSSStyleValue} from './css-style-value';
 
 export type CSSNumberish = CSSNumericValue | number;
-type CSSNumericType = { [key: string]: number | CSSNumericBaseType };
 
-enum CSSNumericBaseType {
+export enum CSSNumericBaseType {
     length = 'length',
     angle = 'angle',
     time = 'time',
@@ -15,9 +14,22 @@ enum CSSNumericBaseType {
     percent = 'percent',
 }
 
+type CSSNumericType = Map<string | CSSNumericBaseType, number | CSSNumericBaseType>;
+
+class CSSUnitMap extends Map<string, number> {
+    equals(other: CSSUnitMap): boolean {
+        if (this.size !== other.size) return false;
+        this.forEach((v, k) => {
+            if (!other.has(k)) return false;
+            if (other[k] !== this[k]) return false;
+        });
+        return true;
+    }
+}
+
 export class CSSNumericValue extends CSSStyleValue {
 
-    type: CSSNumericType = {};
+    type: CSSNumericType = new Map();
 
     add(...values: CSSNumberish[]): CSSNumericValue {
         let rectifiedValues = values.map(this.rectifyNumberishValue);
@@ -141,6 +153,7 @@ export class CSSNumericValue extends CSSStyleValue {
 
     to(unit: string): CSSUnitValue {
         let type = this.createType(unit);
+        let sum = this.createSumValue();
         if (this instanceof CSSUnitValue) {
             if (this.unit === unit) return this;
             if (CSS.areCompatible(this.unit, unit)) {
@@ -159,60 +172,61 @@ export class CSSNumericValue extends CSSStyleValue {
         return new CSSUnitValue(num, 'number');
     }
 
-    private typesHaveSameNonZeroValues(t1, t2) {
-        return Object.keys(t1)
-                .filter(key => t1[key] !== 0)
-                .every(key => t2.hasOwnProperty(key) && t1[key] === t2[key]) &&
-            Object.keys(t2)
-                .filter(key => t2[key] !== 0)
-                .every(key => t1.hasOwnProperty(key) && t1[key] === t2[key]);
+    private typesHaveSameNonZeroValues(t1: CSSNumericType, t2: CSSNumericType): boolean {
+        return Array.from(t1.entries())
+                .filter(([k, v]) => v !== 0)
+                .every(([k, v]) => t2.has(k) && t1.get(k) === t2.get(k)) &&
+            Array.from(t2.entries())
+                .filter(([k, v]) => v !== 0)
+                .every(([k, v]) => t1.has(k) && t1.get(k) === t2.get(k));
     }
 
-    private joinTypes(t1, t2, fT) {
-        Object.keys(t1).forEach(key => {
-            if (fT[key] === undefined) {
-                fT[key] = t1[key];
+    private joinTypes(t1: CSSNumericType, t2: CSSNumericType, fT: CSSNumericType) {
+        t1.forEach((v, k) => {
+            if (!fT.has(k)) {
+                fT.set(k, v);
             }
         });
-        Object.keys(t2).forEach(key => {
-            if (fT[key] === undefined) {
-                fT[key] = t2[key];
+        t2.forEach((v, k) => {
+            if (!fT.has(k)) {
+                fT.set(k, v);
             }
         });
     }
 
-    private applyPercentHintToType(type, hint) {
-        if (!type.hasOwnProperty(hint)) {
+    private applyPercentHintToType(type: CSSNumericType, hint: CSSNumericBaseType) {
+        console.log(typeof type);
+        if (!type.has(hint)) {
             type[hint] = 0;
         }
-        if (type.hasOwnProperty(CSSNumericBaseType.percent)) {
+        if (type.has(CSSNumericBaseType.percent)) {
             type[hint] += type[CSSNumericBaseType.percent];
             type[CSSNumericBaseType.percent] = 0;
         }
-        type.percentHint = hint;
+        type['percentHint'] = hint;
     }
 
     private addTypes(types: CSSNumericType[]): CSSNumericType {
         return types.reduce((type1, type2) => {
-            let finalType: CSSNumericType = {};
+            let finalType: CSSNumericType = new Map();
 
-            if (type1.percentHint != null) {
-                if (type2.percentHint == null) {
-                    this.applyPercentHintToType(type2, type1.percentHint);
+            if (type1.has('percentHint')) {
+                if (type2.has('percentHint')) {
+                    this.applyPercentHintToType(type2, type1.get('percentHint') as CSSNumericBaseType);
                 } else {
-                    if (type1.percentHint !== type2.percentHint) {
+                    if (type1.get('percentHint') !== type2.get('percentHint')) {
                         throw new TypeError('Failed to construct \'CSSMathSum\': Incompatible types');
                     }
                 }
             } else {
-                if (type2.percentHint != null) {
-                    this.applyPercentHintToType(type1, type2.percentHint);
+                if (type2.has('percentHint')) {
+                    this.applyPercentHintToType(type1, type2.get('percentHint') as CSSNumericBaseType);
                 }
             }
 
             if (this.typesHaveSameNonZeroValues(type1, type2)) {
                 this.joinTypes(type1, type2, finalType);
-                this.applyPercentHintToType(finalType, type1.percentHint);
+                this.applyPercentHintToType(finalType, type1.get('percentHint') as CSSNumericBaseType);
                 return finalType;
             }
 
@@ -220,19 +234,22 @@ export class CSSNumericValue extends CSSStyleValue {
                 type1[CSSNumericBaseType.percent] !== 0) ||
                 (type2[CSSNumericBaseType.percent] != null &&
                     type2[CSSNumericBaseType.percent] !== 0)) {
-                if (type1.length < 2 && type2.length < 2) {
+                if (type1.size < 2 && type2.size < 2) {
                     throw new TypeError('Failed to construct \'CSSMathSum\': Incompatible types');
                 }
-                if (Object.keys(type1).some(key => key !== CSSNumericBaseType.percent && type1[key] !== 0) ||
-                    Object.keys(type2).some(key => key !== CSSNumericBaseType.percent && type2[key] !== 0)) {
+                if (Array.from(type1.entries())
+                        .some(([k, v]) => k !== CSSNumericBaseType.percent && v !== 0) ||
+                    Array.from(type1.entries())
+                        .some(([k, v]) => k !== CSSNumericBaseType.percent && v !== 0)) {
                     const origType1 = {...type1};
                     const origType2 = {...type2};
-                    new Set(Object.keys(type1).concat(Object.keys(type2))).forEach((key: CSSNumericBaseType) => {
-                        this.applyPercentHintToType(type1, key);
-                        this.applyPercentHintToType(type2, key);
+                    Array.from(new Map([...type1, ...type2]).keys())
+                        .forEach(([k, v]) => {
+                        this.applyPercentHintToType(type1, k as CSSNumericBaseType);
+                        this.applyPercentHintToType(type2, k as CSSNumericBaseType);
                         if (this.typesHaveSameNonZeroValues(type1, type2)) {
                             this.joinTypes(type1, type2, finalType);
-                            this.applyPercentHintToType(finalType, key);
+                            this.applyPercentHintToType(finalType, k as CSSNumericBaseType);
                             return finalType;
                         }
                         type1 = origType1;
@@ -246,33 +263,32 @@ export class CSSNumericValue extends CSSStyleValue {
 
     private multiplyTypes(types: CSSNumericType[]): CSSNumericType {
         return types.reduce((type1, type2) => {
-            let finalType: CSSNumericType = {};
 
-            if (type1.percentHint != null) {
-                if (type2.percentHint == null) {
-                    this.applyPercentHintToType(type2, type1.percentHint);
+            if (type1.has('percentHint')) {
+                if (type2.has('percentHint')) {
+                    this.applyPercentHintToType(type2, type1['percentHint']);
                 } else {
-                    if (type1.percentHint !== type2.percentHint) {
+                    if (type1['percentHint'] !== type2['percentHint']) {
                         throw new TypeError('Failed to construct \'CSSMathSum\': Incompatible types');
                     }
                 }
             } else {
-                if (type2.percentHint != null) {
-                    this.applyPercentHintToType(type1, type2.percentHint);
+                if (type2.has('percentHint')) {
+                    this.applyPercentHintToType(type1, type2['percentHint']);
                 }
             }
 
-            finalType = {...type1};
-            Object.keys(type2).forEach(key => {
-                if (key !== 'percentHint') {
-                    if (finalType[key] != null) {
-                        finalType[key] += type2[key];
+            let finalType = new Map(type1);
+            type2.forEach((v, k) => {
+                if (k !== 'percentHint') {
+                    if (!finalType.has(k)) {
+                        finalType[k] += v;
                     } else {
-                        finalType[key] = type2[key];
+                        finalType[k] = v;
                     }
                 }
             });
-            this.applyPercentHintToType(finalType, type1.percentHint);
+            this.applyPercentHintToType(finalType, type1['percentHint']);
             return finalType;
         });
     }
@@ -304,7 +320,7 @@ export class CSSNumericValue extends CSSStyleValue {
     }
 
     protected createType(unit: string): CSSNumericType {
-        let result = {};
+        let result = new Map();
         const unitData = CSS.getUnitData(unit);
         if (unitData != null) {
             if (unitData.name === 'number') return result;
@@ -312,6 +328,123 @@ export class CSSNumericValue extends CSSStyleValue {
             return result;
         }
         throw new TypeError(`Failed to create type: Invalid unit ${unit}`);
+    }
+
+    private createTypeFromUnitMap(map: CSSUnitMap): CSSNumericType {
+        let types = [];
+        map.forEach((p, u) => {
+            let type = this.createType(u);
+            type[u] = p;
+            types.push(type);
+        });
+        return this.multiplyTypes(types);
+    }
+
+    private createSumValue() {
+        if (this instanceof CSSUnitValue) {
+            let value = this.value;
+            let unit = this.unit;
+            let unitData = CSS.getUnitData(unit);
+            if (unitData.toCanonical !== 0) {
+                value *= unitData.toCanonical;
+                unit = CSS.getCanonicalUnit(unitData);
+            }
+            if (unit === 'number') {
+                return [[value, new CSSUnitMap()]];
+            }
+            let unitMap = new CSSUnitMap();
+            unitMap[unit] = 1;
+            return [[value, unitMap]];
+        }
+        if (this instanceof CSSMathSum) {
+            let values = [];
+            this.values.forEach(i => {
+                let value = i.createSumValue();
+                value.forEach(v => {
+                    let inValue = values.findIndex(val => val[1].equals(v[1]));
+                    if (inValue !== -1) {
+                        values[inValue][0] += v.value;
+                    } else {
+                        values.push(v);
+                    }
+                });
+            });
+            let types = values.map(this.createTypeFromUnitMap);
+            this.addTypes(types);
+            return values;
+        }
+        if (this instanceof CSSMathNegate) {
+            let values = this.value.createSumValue();
+            values.forEach(v => v[0] = -v[0]);
+            return values;
+        }
+        if (this instanceof CSSMathProduct) {
+            let values = [[1, new CSSUnitMap()]];
+            this.values.forEach(v => {
+                let newVals = v.createSumValue();
+                let temp = [];
+                values.forEach(v1 => {
+                   newVals.forEach(v2 => {
+                       let item = [
+                           v1[0] * v2[0],
+                           this.multiplyUnitMaps(v1[1], v2[1]),
+                       ];
+                       temp.push(item);
+                   });
+                });
+                values = temp;
+            });
+            return values;
+        }
+        if (this instanceof CSSMathInvert) {
+            let sumVal = this.value.createSumValue();
+            if (sumVal.length > 1) {
+                throw new TypeError('Failed to create sum value from \'CSSMathInvert\'');
+            }
+            sumVal[0][0] = 1 / sumVal[0][0];
+            sumVal[0][1].forEach((v, k) => sumVal[0][1][k] = -v);
+            return sumVal;
+        }
+        if (this instanceof CSSMathMin) {
+            let args = this.values.map(v => v.createSumValue());
+            if (args.some(v => v.length > 1)) {
+                throw new TypeError('Failed to create sum value from \'CSSMathMin\'');
+            }
+            if (args.some((v, i, a) => v[0][1].equlas(a[0][0][1]))) {
+                throw new TypeError('Failed to create sum value from \'CSSMathMin\'');
+            }
+            return args.reduce((acc, val) => acc[0][0] < val[0][0] ? acc : val);
+        }
+        if (this instanceof CSSMathMax) {
+            let args = this.values.map(v => v.createSumValue());
+            if (args.some(v => v.length > 1)) {
+                throw new TypeError('Failed to create sum value from \'CSSMathMin\'');
+            }
+            if (args.some((v, i, a) => v[0][1].equlas(a[0][0][1]))) {
+                throw new TypeError('Failed to create sum value from \'CSSMathMin\'');
+            }
+            return args.reduce((acc, val) => acc[0][0] < val[0][0] ? acc : val);
+        }
+    }
+
+    protected multiplyUnitMaps(u1: CSSUnitMap, u2: CSSUnitMap): CSSUnitMap {
+        let u1NonZero: CSSUnitMap, u2NonZero: CSSUnitMap;
+        console.log(u1.forEach);
+        u1.forEach((v, k) => {
+            if (v !== 0) u1NonZero[k] = v;
+        });
+        u2.forEach((v, k) => {
+            if (v !== 0) u2NonZero[k] = v;
+        });
+        let result = {...u1NonZero};
+        u2.forEach((p, u) => {
+            if (result.has(u)) {
+                result[u] += p;
+            } else {
+                result[u] = p;
+            }
+        });
+        return result;
     }
 }
 
@@ -329,42 +462,31 @@ class CSSMathValue extends CSSNumericValue {
 }
 
 class CSSMathInvert extends CSSMathValue {
-
     readonly value;
-
     constructor(value) {
         super();
         this.value = value;
     }
-
 }
 
 class CSSMathMax extends CSSMathValue {
-
     readonly values;
-
     constructor(...values) {
         super();
         this.values = values;
     }
-
 }
 
 class CSSMathMin extends CSSMathValue {
-
     readonly values;
-
     constructor(...values) {
         super();
         this.values = values;
     }
-
 }
 
 class CSSMathNegate extends CSSMathValue {
-
     readonly value;
-
     constructor(value) {
         super();
         this.value = value;
@@ -372,27 +494,17 @@ class CSSMathNegate extends CSSMathValue {
 }
 
 class CSSMathProduct extends CSSMathValue {
-
-    private readonly _values;
-
-    get values() {
-        return this._values;
-    }
-
-    constructor(...values) {
-        super();
-        this._values = values;
-    }
-
-}
-
-class CSSMathSum extends CSSMathValue {
-
     readonly values;
-
     constructor(values) {
         super();
         this.values = values;
     }
+}
 
+class CSSMathSum extends CSSMathValue {
+    readonly values;
+    constructor(values) {
+        super();
+        this.values = values;
+    }
 }

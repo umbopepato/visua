@@ -6,14 +6,14 @@ export class CSS {
         {
             name: 'number',
             symbol: '',
-            toCanonical: 1,
+            toCanonical: 0,
             compatSet: 0,
             baseType: 'dimensionless',
         },
         {
             name: 'percent',
             symbol: '%',
-            toCanonical: 1,
+            toCanonical: 0,
             compatSet: 1,
             baseType: 'dimensionless',
         },
@@ -389,5 +389,12 @@ export class CSS {
             throw new TypeError(`Failed to construct 'CSSUnitValue': Invalid unit ${unit}`);
         }
         return unitData.name;
+    }
+
+    static getCanonicalUnit(unit): string {
+        if (unit.toCanonical === 0) {
+            return unit.name;
+        }
+        return this.units.find(u => u.compatSet === unit.compatSet && u.toCanonical === 1).name;
     }
 }
