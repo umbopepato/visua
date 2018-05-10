@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import {CSS} from '../src/css';
 
-describe('CSSColorValue', () => {
+describe('CSSNumericValue', () => {
 
     describe('#add()', () => {
 
@@ -23,9 +23,12 @@ describe('CSSColorValue', () => {
 
     describe('#mul()', () => {
 
-        it('should multiply CSSUnitValue\'s with the same unit', () => {
-            expect(CSS.px(12).mul(CSS.px(12)).to('px')).to.be.deep.equal(CSS.px(144));
-            expect(CSS.cm(2).mul(CSS.cm(3), CSS.cm(2)).mul(CSS.cm(3)).to('cm')).to.be.deep.equal(CSS.cm(36));
+        it('should throw an error when trying to simplify a product with power > 1', () => {
+            expect(() => CSS.px(12).mul(CSS.px(12)).to('px')).to.throw();
+        });
+
+        it('should create a CSSUnitValue from a product between unit and number', function () {
+            expect(CSS.px(12).mul(2)).to.be.deep.equal(CSS.px(24));
         });
 
     });
