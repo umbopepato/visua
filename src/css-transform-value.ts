@@ -3,23 +3,32 @@ import {DOMMatrix} from './dom-matrix';
 
 export class CSSTransformValue {
 
-    components: CSSTransformComponent[] = [];
-    readonly length: number;
+    get length(): number {
+        return this.transforms.length;
+    }
+
+    constructor(public transforms: CSSTransformComponent[]) {
+        if (!transforms.length) {
+            throw new TypeError(`Failed to construct CSSTranformValue: Parameter transform is empty`)
+        }
+    }
 
     get(index: number): CSSTransformComponent {
-        return this.components[index];
+        return this.transforms[index];
     }
 
     append(component: CSSTransformComponent): number {
-        return this.components.push(component);
+        return this.transforms.push(component);
     }
 
     get is2D(): boolean {
-        return this.components.every(c => c.is2D);
+        return this.transforms.every(c => c.is2D);
     }
 
     toMatrix(): DOMMatrix {
-        // TODO
+        return this.transforms
+            .map(t => t.toMatrix())
+            .reduce((a, v) => a.multiply(v));
     }
 
 }
