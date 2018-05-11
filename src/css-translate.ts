@@ -12,5 +12,15 @@ export class CSSTranslate implements CSSTransformComponent {
         return undefined;
     }
 
-    constructor(public x: CSSNumericValue, public y: CSSNumericValue, public z: CSSNumericValue) {}
+    constructor(public x: CSSNumericValue, public y: CSSNumericValue, public z?: CSSNumericValue) {
+        if (x.type.size !== 1 || !(x.type.has('length') || x.type.has('percent'))) {
+            throw new TypeError(`Failed to construct CSSTranslate: ${x} is neither length nor percent`);
+        }
+        if (y.type.size !== 1 || !(y.type.has('length') || y.type.has('percent'))) {
+            throw new TypeError(`Failed to construct CSSTranslate: ${y} is neither length nor percent`);
+        }
+        if (z && (z.type.size !== 1 || !z.type.has('length'))) {
+            throw new TypeError(`Failed to construct CSSTranslate: ${z} is neither length nor percent`);
+        }
+    }
 }
