@@ -371,12 +371,8 @@ export class CSS {
         return new CSSUnitValue(value, 'fr');
     }
 
-    static areCompatible(unit1, unit2) {
-        let u1Data = CSS.units.find(u => u.name === unit1 || u.symbol === unit1);
-        if (u1Data == null) throw new TypeError(`Failed to convert ${unit1} to ${unit2}: Invalid unit ${unit1}`);
-        let u2Data = CSS.units.find(u => u.name === unit2 || u.symbol === unit2);
-        if (u2Data == null) throw new TypeError(`Failed to convert ${unit1} to ${unit2}: Invalid unit ${unit2}`);
-        return u1Data.compatSet === u2Data.compatSet;
+    static areCompatible(...units: string[]) {
+        return units.map(v => CSS.getUnitData(v).compatSet).every((v, i, a) => v === a[0]);
     }
 
     static getUnitData(unit) {
@@ -392,7 +388,8 @@ export class CSS {
     }
 
     static getCanonicalUnit(unit): string {
-        if (unit.toCanonical === 0) {
+        if (typeof unit === 'string') unit = CSS.getUnitData(unit);
+        if (unit.toCanonical === 1) {
             return unit.name;
         }
         return this.units.find(u => u.compatSet === unit.compatSet && u.toCanonical === 1).name;
