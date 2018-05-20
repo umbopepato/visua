@@ -1,6 +1,7 @@
 import {CSS} from './css';
 import {CSSUnitValue} from './css-unit-value';
 import {CSSStyleValue} from './css-style-value';
+import * as util from 'util';
 
 export type CSSNumberish = CSSNumericValue | number;
 
@@ -33,7 +34,7 @@ export class CSSNumericValue extends CSSStyleValue {
     type: CSSNumericType = new Map();
 
     add(...values: CSSNumberish[]): CSSNumericValue {
-        let rectifiedValues = values.map(this.rectifyNumberishValue);
+        let rectifiedValues = values.map(CSSNumericValue.rectifyNumberishValue);
         if (this instanceof CSSMathSum) {
             this.values.unshift(rectifiedValues);
         } else {
@@ -53,12 +54,12 @@ export class CSSNumericValue extends CSSStyleValue {
     }
 
     sub(...values: CSSNumberish[]): CSSNumericValue {
-        let rectifiedValues = values.map(this.rectifyNumberishValue);
+        let rectifiedValues = values.map(CSSNumericValue.rectifyNumberishValue);
         return this.add(...rectifiedValues.map(this.negate));
     }
 
     mul(...values: CSSNumberish[]): CSSNumericValue {
-        let rectifiedValues = values.map(this.rectifyNumberishValue);
+        let rectifiedValues = values.map(CSSNumericValue.rectifyNumberishValue);
         if (this instanceof CSSMathProduct) {
             this.values.unshift(rectifiedValues);
         } else {
@@ -81,12 +82,12 @@ export class CSSNumericValue extends CSSStyleValue {
     }
 
     div(...values: CSSNumberish[]): CSSNumericValue {
-        let rectifiedValues = values.map(this.rectifyNumberishValue);
+        let rectifiedValues = values.map(CSSNumericValue.rectifyNumberishValue);
         return this.mul(...rectifiedValues.map(this.invert));
     }
 
     min(...values: CSSNumberish[]): CSSNumericValue {
-        let rectifiedValues = values.map(this.rectifyNumberishValue);
+        let rectifiedValues = values.map(CSSNumericValue.rectifyNumberishValue);
         if (this instanceof CSSMathMin) {
             this.values.unshift(rectifiedValues);
         } else {
@@ -105,7 +106,7 @@ export class CSSNumericValue extends CSSStyleValue {
     }
 
     max(...values: CSSNumberish[]): CSSNumericValue {
-        let rectifiedValues = values.map(this.rectifyNumberishValue);
+        let rectifiedValues = values.map(CSSNumericValue.rectifyNumberishValue);
         if (this instanceof CSSMathMax) {
             this.values.unshift(rectifiedValues);
         } else {
@@ -124,7 +125,7 @@ export class CSSNumericValue extends CSSStyleValue {
     }
 
     equals(...values: CSSNumberish[]): boolean {
-        let rectifiedValues = values.map(this.rectifyNumberishValue);
+        let rectifiedValues = values.map(CSSNumericValue.rectifyNumberishValue);
         return values.every(val => {
             if (val instanceof CSSUnitValue &&
                 this instanceof CSSUnitValue) {
@@ -153,7 +154,7 @@ export class CSSNumericValue extends CSSStyleValue {
     }
 
     to(unit: string): CSSUnitValue {
-        let type = this.createType(unit);
+        this.createType(unit);
         let sum = this.createSumValue();
         if (sum.length > 1) {
             throw new TypeError(`Failed to convert ${typeof this} to ${unit}`);
@@ -162,7 +163,19 @@ export class CSSNumericValue extends CSSStyleValue {
         return item.toUnit(unit);
     }
 
-    private rectifyNumberishValue(num: CSSNumberish): CSSUnitValue | CSSNumericValue {
+    solve(): CSSNumericValue {
+        try {
+            let sum = this.createSumValue();
+            if (sum.length > 1) {
+                return this;
+            }
+            return CSSUnitValue.fromSumValue(sum);
+        } catch {
+            return this;
+        }
+    }
+
+    static rectifyNumberishValue(num: CSSNumberish): CSSUnitValue | CSSNumericValue {
         if (num instanceof CSSNumericValue) {
             return num;
         }
@@ -316,6 +329,7 @@ export class CSSNumericValue extends CSSStyleValue {
     }
 
     protected createType(unit: string): CSSNumericType {
+        console.log(`Creating type from ${unit}`);
         let result = new Map();
         const unitData = CSS.getUnitData(unit);
         if (unitData != null) {
@@ -359,13 +373,14 @@ export class CSSNumericValue extends CSSStyleValue {
                 value.forEach(v => {
                     let inValue = values.findIndex(val => val[1].equals(v[1]));
                     if (inValue !== -1) {
-                        values[inValue][0] += v.value;
+                        values[inValue][0] += v[0];
                     } else {
                         values.push(v);
                     }
                 });
             });
-            let types = values.map(this.createTypeFromUnitMap);
+            console.log(values);
+            let types = values.map(v => this.createTypeFromUnitMap(v[1]));
             this.addTypes(types);
             return values;
         }
@@ -453,11 +468,11 @@ enum CSSMathOperator {
     max,
 }
 
-class CSSMathValue extends CSSNumericValue {
+export class CSSMathValue extends CSSNumericValue {
     readonly operator: CSSMathOperator;
 }
 
-class CSSMathInvert extends CSSMathValue {
+export class CSSMathInvert extends CSSMathValue {
     readonly value;
 
     constructor(value) {
@@ -466,7 +481,7 @@ class CSSMathInvert extends CSSMathValue {
     }
 }
 
-class CSSMathMax extends CSSMathValue {
+export class CSSMathMax extends CSSMathValue {
     readonly values;
 
     constructor(...values) {
@@ -475,7 +490,7 @@ class CSSMathMax extends CSSMathValue {
     }
 }
 
-class CSSMathMin extends CSSMathValue {
+export class CSSMathMin extends CSSMathValue {
     readonly values;
 
     constructor(...values) {
@@ -484,7 +499,7 @@ class CSSMathMin extends CSSMathValue {
     }
 }
 
-class CSSMathNegate extends CSSMathValue {
+export class CSSMathNegate extends CSSMathValue {
     readonly value;
 
     constructor(value) {
@@ -493,7 +508,7 @@ class CSSMathNegate extends CSSMathValue {
     }
 }
 
-class CSSMathProduct extends CSSMathValue {
+export class CSSMathProduct extends CSSMathValue {
     readonly values;
 
     constructor(values) {
@@ -502,7 +517,7 @@ class CSSMathProduct extends CSSMathValue {
     }
 }
 
-class CSSMathSum extends CSSMathValue {
+export class CSSMathSum extends CSSMathValue {
     readonly values;
 
     constructor(values) {

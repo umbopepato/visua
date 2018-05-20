@@ -1,7 +1,19 @@
 import * as cssTree from 'css-tree';
 import {StyleMap} from './style-map';
 import {CSSStyleValue} from './css-style-value';
-import {CSSStyleValues} from './css-style-values';
+import {CSSHexColor, CSSHslaColor, CSSRgbaColor} from './css-color-value';
+import {
+    CSSMathInvert,
+    CSSMathMax,
+    CSSMathMin,
+    CSSMathNegate,
+    CSSMathProduct,
+    CSSMathSum,
+    CSSMathValue,
+} from './css-numeric-value';
+import {CSSUnitValue} from './css-unit-value';
+import {CSSUrlValue} from './css-url-value';
+import * as util from 'util';
 
 export default class AstCssomConverter {
 
@@ -24,7 +36,7 @@ export default class AstCssomConverter {
             if (declaration.type !== 'Declaration') {
                 throw new TypeError(`identt config must be a list of variables. ${declaration.type} is not`);
             }
-            cssOm.set(declaration.property.substr(2), AstCssomConverter.astValueToCssOm(declaration.value));
+            cssOm.set(declaration.property.substr(2), this.parseAstValue(declaration.value));
         }
         return cssOm;
     }
@@ -54,18 +66,6 @@ export default class AstCssomConverter {
         if (node.value) {
             this.expandVariableReferencesR(node.value);
         }
-    }
-
-    static printAst(ast) {
-        cssTree.walk(ast, node => console.log(node.type));
-    }
-
-    private static astValueToCssOm(astNode): CSSStyleValue {
-        if (!astNode.children || !astNode.children.length) {
-            console.warn('Warn: empty property found in config.');
-            return new CSSStyleValue();
-        }
-        return CSSStyleValues.fromAstValue(astNode);
     }
 
     private generateVariablesMap() {
@@ -106,4 +106,129 @@ export default class AstCssomConverter {
         }
     }
 
+    private parseAstValue(node): CSSStyleValue {
+        switch (node.type) {
+            case 'Value':
+                return this.parseDeclaration(node);
+            case 'Dimension':
+                return this.parseDimension(node);
+            case 'Number':
+                return this.parseNumber(node);
+            case 'Function':
+                return this.parseFunction(node);
+            case 'Url':
+                return this.parseUrl(node);
+            case 'HexColor':
+                return this.parseHex(node);
+            case 'Parentheses':
+                return this.parseCalc(node.children);
+        }
+    }
+
+    private parseDeclaration(node) {
+        if (node.children.length === 1) {
+            return this.parseAstValue(node.children[0]);
+        } else {
+            // TODO handle multiple children declarations
+        }
+    }
+
+    private parseDimension(node) {
+        return new CSSUnitValue(node.value, node.unit);
+    }
+
+    private parseNumber(node) {
+        return new CSSUnitValue(node.value, 'number');
+    }
+
+    private parseFunction(node) {
+        switch (node.name) {
+            case 'calc':
+                return this.parseCalc(node.children);
+            case 'min':
+                return this.parseMin(node);
+            case 'max':
+                return this.parseMax(node);
+            case 'rgba':
+            case 'rgb':
+                return new CSSRgbaColor(
+                    ...node.children
+                        .filter(c => c.type === 'Number')
+                        .map(c => Number(c.value)),
+                );
+            case 'hsla':
+            case 'hsl':
+                return new CSSHslaColor(
+                    ...node.children
+                        .filter(c => c.type === 'Number' || c.type === 'Percentage' || c.type === 'Dimension')
+                        .map(c => {
+                            switch (c.type) {
+                                case 'Number':
+                                    return c.value;
+                                case 'Dimension':
+                                    return this.parseDimension(c);
+                                case 'Percentage':
+                                    return this.parsePercentage(c);
+                            }
+                        }),
+                );
+
+        }
+    }
+
+    private parseUrl(node) {
+        return new CSSUrlValue(node.value.value);
+    }
+
+    private parseHex(node) {
+        return CSSHexColor.fromString(node.value);
+    }
+
+    private parsePercentage(node) {
+        return new CSSUnitValue(node.value, 'percent');
+    }
+
+    private parseCalc(components) {
+        const children = components.filter(c => c.type !== 'WhiteSpace');
+        if (children.length < 3) throw new TypeError(`Failed to convert ${components} to CSSMathValue: Too few arguments`);
+        let top = children.length - 2;
+        for (let i = top; i > 0; i -=2 ) {
+            if (children[i].value === '+' || children[i].value === '-') {
+                top = i;
+                break;
+            }
+        }
+        return this.parseCalcBinaryExpression(children.slice(0, top), children[top].value, children.slice(top + 1));
+    }
+
+    private parseCalcBinaryExpression(left, operator, right) {
+        let mathValue, result: CSSMathValue;
+        let leftValue = left.length === 1 ? this.parseAstValue(left[0]) : this.parseCalc(left);
+        let rightValue = right.length === 1 ? this.parseAstValue(right[0]) : this.parseCalc(right);
+        if (operator === '-') rightValue = new CSSMathNegate(rightValue);
+        if (operator === '/') rightValue = new CSSMathInvert(rightValue);
+        switch (operator) {
+            case '+':
+            case '-':
+                mathValue = new CSSMathSum([leftValue, rightValue]);
+                break;
+            case '*':
+            case '/':
+                mathValue = new CSSMathProduct([leftValue, rightValue]);
+                break;
+        }
+        return mathValue.solve();
+    }
+
+    private parseBinaryExpression(expr, index) {
+
+    }
+
+    private parseMin(node) {
+        return new CSSMathMin(...node.children.filter(c => c.type !== 'Whitespace').map(this.parseAstValue));
+    }
+
+    private parseMax(node) {
+        return new CSSMathMax(...node.children.filter(c => c.type !== 'Whitespace').map(this.fromAstValue));
+    }
 }

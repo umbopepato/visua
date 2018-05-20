@@ -9,9 +9,9 @@ gulp.task('compile', function () {
     gulp.src('src/**/*.ts')
         .pipe(sourcemaps.init())
         .pipe(tsProject())
-        .pipe(babel({
-            presets: ['env']
-        }))
+        // .pipe(babel({
+        //     presets: ['env']
+        // }))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('dist'));
 });
