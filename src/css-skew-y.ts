@@ -4,11 +4,16 @@ import {DOMMatrix} from './dom-matrix';
 
 export class CSSSkewY implements CSSTransformComponent {
 
-    is2D: boolean = true;
+    readonly is2D: boolean = true;
 
     toMatrix(): DOMMatrix {
-        return undefined;
+        const ay = this.ay.to('deg').value;
+        return new DOMMatrix().skewYSelf(ay);
     }
 
-    constructor(public ay: CSSNumericValue) {}
+    constructor(public ay: CSSNumericValue) {
+        if (!ay.type.has('angle')) {
+            throw new TypeError(`Failed to construct CSSSkew: ay must be an angle`);
+        }
+    }
 }
