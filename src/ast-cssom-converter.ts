@@ -9,17 +9,49 @@ import {
     CSSMathNegate,
     CSSMathProduct,
     CSSMathSum,
-    CSSMathValue,
+    CSSMathValue, CSSNumericValue,
 } from './css-numeric-value';
 import {CSSUnitValue} from './css-unit-value';
 import {CSSUrlValue} from './css-url-value';
-import * as util from 'util';
+import {CSSTransformComponent} from './css-transform-component';
+import {CSSTransformValue} from './css-transform-value';
+import {DOMMatrix} from './dom-matrix';
+import {CSSTranslate} from './css-translate';
+import {CSS} from './css';
+import {CSSScale} from './css-scale';
+import {CSSRotate} from './css-rotate';
+import {CSSSkew} from './css-skew';
+import {CSSPerspective} from './css-perspective';
 
 export default class AstCssomConverter {
 
     variables: {};
+    transformNames: string[] = [
+        'matrix',
+        'translate',
+        'translateX',
+        'translateY',
+        'scale',
+        'scaleX',
+        'scaleY',
+        'rotate',
+        'skew',
+        'skewX',
+        'skewY',
+        'matrix3d',
+        'translate3d',
+        'translateZ',
+        'scale3d',
+        'scaleZ',
+        'rotate3d',
+        'rotateX',
+        'rotateY',
+        'rotateZ',
+        'perspective',
+    ];
 
-    constructor(private ast) {};
+    constructor(private ast) {
+    };
 
     getStyleMap() {
         let cssOm = new StyleMap();
@@ -36,7 +68,7 @@ export default class AstCssomConverter {
             if (declaration.type !== 'Declaration') {
                 throw new TypeError(`identt config must be a list of variables. ${declaration.type} is not`);
             }
-            cssOm.set(declaration.property.substr(2), this.parseAstValue(declaration.value));
+            cssOm.set(declaration.property.substr(2), this.convertAstValue(declaration.value));
         }
         return cssOm;
     }
@@ -106,49 +138,55 @@ export default class AstCssomConverter {
         }
     }
 
-    private parseAstValue(node): CSSStyleValue {
+    private convertAstValue(node) {
         switch (node.type) {
             case 'Value':
-                return this.parseDeclaration(node);
+                return this.convertDeclaration(node);
             case 'Dimension':
-                return this.parseDimension(node);
+                return this.convertDimension(node);
             case 'Number':
-                return this.parseNumber(node);
+                return this.convertNumber(node);
             case 'Function':
-                return this.parseFunction(node);
+                return this.convertFunction(node);
             case 'Url':
-                return this.parseUrl(node);
+                return this.convertUrl(node);
             case 'HexColor':
-                return this.parseHex(node);
+                return this.convertHex(node);
             case 'Parentheses':
-                return this.parseCalc(node.children);
+                return this.convertCalc(node.children);
         }
     }
 
-    private parseDeclaration(node) {
+    private convertDeclaration(node) {
         if (node.children.length === 1) {
-            return this.parseAstValue(node.children[0]);
+            return this.convertAstValue(node.children[0]);
         } else {
-            // TODO handle multiple children declarations
+            if (this.transformNames.includes(node.children[0].name)) {
+                return this.convertTransform(node);
+            }
         }
     }
 
-    private parseDimension(node) {
+    private convertTransform(node) {
+        return new CSSTransformValue(node.children.map(this.convertFunction));
+    }
+
+    private convertDimension(node) {
         return new CSSUnitValue(node.value, node.unit);
     }
 
-    private parseNumber(node) {
+    private convertNumber(node) {
         return new CSSUnitValue(node.value, 'number');
     }
 
-    private parseFunction(node) {
+    private convertFunction(node) {
         switch (node.name) {
             case 'calc':
-                return this.parseCalc(node.children);
+                return this.convertCalc(node.children);
             case 'min':
-                return this.parseMin(node);
+                return this.convertMin(node);
             case 'max':
-                return this.parseMax(node);
+                return this.convertMax(node);
             case 'rgba':
             case 'rgb':
                 return new CSSRgbaColor(
@@ -166,45 +204,109 @@ export default class AstCssomConverter {
                                 case 'Number':
                                     return c.value;
                                 case 'Dimension':
-                                    return this.parseDimension(c);
+                                    return this.convertDimension(c);
                                 case 'Percentage':
-                                    return this.parsePercentage(c);
+                                    return this.convertPercentage(c);
                             }
                         }),
                 );
 
+            case 'matrix':
+            case 'matrix3d':
+                return new DOMMatrix(
+                    node.children
+                        .filter(c => c.type === 'Number')
+                        .map(c => c.value),
+                );
+            case 'translate':
+            case 'translate3d':
+                return new CSSTranslate(
+                    ...node.children
+                        .filter(c => c.type === 'Dimension')
+                        .map(this.convertAstValue),
+                );
+            case 'translateX':
+                return new CSSTranslate(this.convertAstValue(node.children[0]) as CSSNumericValue, CSS.px(0));
+            case 'translateY':
+                return new CSSTranslate(CSS.px(0), this.convertAstValue(node.children[0]) as CSSNumericValue);
+            case 'translateZ':
+                return new CSSTranslate(CSS.px(0), CSS.px(0), this.convertAstValue(node.children[0]) as CSSNumericValue);
+            case 'scale':
+            case 'scale3d':
+                if (node.children.length < 3) {
+                    return new CSSScale(this.convertAstValue(node.children[0]), CSS.px(0));
+                }
+                return new CSSScale(
+                    ...node.children
+                        .filter(c => c.type === 'Dimension' || c.type === 'Number')
+                        .map(this.convertAstValue)
+                );
+            case 'scaleX':
+                return new CSSScale(this.convertAstValue(node.children[0]), CSS.px(0));
+            case 'scaleY':
+                return new CSSScale(CSS.px(0), this.convertAstValue(node.children[0]));
+            case 'scaleZ':
+                return new CSSScale(CSS.px(0), CSS.px(0), this.convertAstValue(node.children[0]));
+            case 'rotate':
+                return new CSSRotate(this.convertAstValue(node.children[0]) as CSSNumericValue);
+            case 'rotateX':
+                return new CSSRotate(this.convertAstValue(node.children[0]) as CSSNumericValue, 1, 0, 0);
+            case 'rotateY':
+                return new CSSRotate(this.convertAstValue(node.children[0]) as CSSNumericValue, 0, 1, 0);
+            case 'rotateZ':
+                return new CSSRotate(this.convertAstValue(node.children[0]) as CSSNumericValue, 0, 0, 1);
+            case 'rotate3d':
+                const params = node.children
+                    .filter(c => c.type === 'Number' || c.type === 'Dimension')
+                    .map(this.convertAstValue);
+                return new CSSRotate(params[3], params[0], params[1], params[2]);
+            case 'skew':
+                if (node.children.length < 3) {
+                    return new CSSSkew(this.convertAstValue(node.children[0]), CSS.px(0));
+                }
+                return new CSSSkew(
+                    ...node.children
+                        .filter(c => c.type === 'Dimension' || c.type === 'Number')
+                        .map(this.convertAstValue)
+                );
+            case 'skewX':
+                return new CSSSkew(this.convertAstValue(node.children[0]), CSS.px(0));
+            case 'skewY':
+                return new CSSSkew(CSS.px(0), this.convertAstValue(node.children[0]));
+            case 'perspective':
+                return new CSSPerspective(this.convertAstValue(node.children[0]));
         }
     }
 
-    private parseUrl(node) {
+    private convertUrl(node) {
         return new CSSUrlValue(node.value.value);
     }
 
-    private parseHex(node) {
+    private convertHex(node) {
         return CSSHexColor.fromString(node.value);
     }
 
-    private parsePercentage(node) {
+    private convertPercentage(node) {
         return new CSSUnitValue(node.value, 'percent');
     }
 
-    private parseCalc(components) {
+    private convertCalc(components) {
         const children = components.filter(c => c.type !== 'WhiteSpace');
         if (children.length < 3) throw new TypeError(`Failed to convert ${components} to CSSMathValue: Too few arguments`);
         let top = children.length - 2;
-        for (let i = top; i > 0; i -=2 ) {
+        for (let i = top; i > 0; i -= 2) {
             if (children[i].value === '+' || children[i].value === '-') {
                 top = i;
                 break;
             }
         }
-        return this.parseCalcBinaryExpression(children.slice(0, top), children[top].value, children.slice(top + 1));
+        return this.convertCalcBinaryExpression(children.slice(0, top), children[top].value, children.slice(top + 1));
     }
 
-    private parseCalcBinaryExpression(left, operator, right) {
+    private convertCalcBinaryExpression(left, operator, right) {
         let mathValue, result: CSSMathValue;
-        let leftValue = left.length === 1 ? this.parseAstValue(left[0]) : this.parseCalc(left);
-        let rightValue = right.length === 1 ? this.parseAstValue(right[0]) : this.parseCalc(right);
+        let leftValue = left.length === 1 ? this.convertAstValue(left[0]) : this.convertCalc(left);
+        let rightValue = right.length === 1 ? this.convertAstValue(right[0]) : this.convertCalc(right);
         if (operator === '-') rightValue = new CSSMathNegate(rightValue);
         if (operator === '/') rightValue = new CSSMathInvert(rightValue);
         switch (operator) {
@@ -220,15 +322,11 @@ export default class AstCssomConverter {
         return mathValue.solve();
     }
 
-    private parseBinaryExpression(expr, index) {
-
+    private convertMin(node) {
+        return new CSSMathMin(...node.children.filter(c => c.type !== 'Whitespace').map(this.convertAstValue));
     }
 
-    private parseMin(node) {
-        return new CSSMathMin(...node.children.filter(c => c.type !== 'Whitespace').map(this.parseAstValue));
-    }
-
-    private parseMax(node) {
+    private convertMax(node) {
         return new CSSMathMax(...node.children.filter(c => c.type !== 'Whitespace').map(this.fromAstValue));
     }
 }

@@ -22,8 +22,7 @@ program.command('init')
 program.parse(process.argv);*/
 
 const css = `
---prova: 1px;
---ciao: calc((var(--prova) + 1px) * 2);
+--prova: scale(1);
 `;
 
 const ast = cssTree.parse(css, {
