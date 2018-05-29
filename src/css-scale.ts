@@ -49,7 +49,7 @@ export class CSSScale implements CSSTransformComponent {
         this.y = y;
         if (z) this.z = z;
         else this.z = CSS.number(1);
-        if (![this.x, this.y, this.z].every(v => CSS.getUnitData(v).baseType !== 'number')) {
+        if (![this.x, this.y, this.z].every(v => CSS.getUnitData(v.unit).baseType !== 'number')) {
             throw new TypeError(`Failed to construct CSSRotate: Failed to rectify numberish value`);
         }
     }

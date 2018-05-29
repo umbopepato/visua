@@ -234,11 +234,11 @@ export default class AstCssomConverter {
             case 'scale':
             case 'scale3d':
                 if (node.children.length < 3) {
-                    return new CSSScale(this.convertAstValue(node.children[0]), CSS.px(0));
+                    return new CSSScale(this.convertAstValue(node.children[0]), CSS.px(1));
                 }
                 return new CSSScale(
                     ...node.children
-                        .filter(c => c.type === 'Dimension' || c.type === 'Number')
+                        .filter(c => c.type === 'Number')
                         .map(this.convertAstValue)
                 );
             case 'scaleX':
@@ -248,13 +248,13 @@ export default class AstCssomConverter {
             case 'scaleZ':
                 return new CSSScale(CSS.px(0), CSS.px(0), this.convertAstValue(node.children[0]));
             case 'rotate':
-                return new CSSRotate(this.convertAstValue(node.children[0]) as CSSNumericValue);
+                return new CSSRotate(this.convertAstValue(node.children[0]));
             case 'rotateX':
-                return new CSSRotate(this.convertAstValue(node.children[0]) as CSSNumericValue, 1, 0, 0);
+                return new CSSRotate(this.convertAstValue(node.children[0]), 1, 0, 0);
             case 'rotateY':
-                return new CSSRotate(this.convertAstValue(node.children[0]) as CSSNumericValue, 0, 1, 0);
+                return new CSSRotate(this.convertAstValue(node.children[0]), 0, 1, 0);
             case 'rotateZ':
-                return new CSSRotate(this.convertAstValue(node.children[0]) as CSSNumericValue, 0, 0, 1);
+                return new CSSRotate(this.convertAstValue(node.children[0]), 0, 0, 1);
             case 'rotate3d':
                 const params = node.children
                     .filter(c => c.type === 'Number' || c.type === 'Dimension')
