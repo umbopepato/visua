@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./dist/main.js",
-    "test": "ts-mocha -p ./ test/**/*.spec.ts",
+    "test": "nyc ts-mocha -p ./ test/**/*.spec.ts",
     "build": "gulp compile",
     "build:clean": "rm -r dist && gulp compile",
     "build:watch": "gulp whatch"
@@ -35,6 +35,8 @@
     "gulp-sourcemaps": "^2.6.4",
     "gulp-typescript": "^4.0.2",
     "mocha": "^5.1.1",
+    "nyc": "^11.8.0",
+    "source-map-support": "^0.5.6",
     "ts-mocha": "^1.2.0",
     "ts-node": "^6.0.3",
     "typescript": "^2.8.3"
@@ -43,5 +45,14 @@
     "chalk": "^2.4.1",
     "commander": "^2.15.1",
     "css-tree": "^1.0.0-alpha.28"
+  },
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "include": [
+      "src/"
+    ],
+    "all": true
   }
 }
