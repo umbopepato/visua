@@ -2,6 +2,7 @@ import {CSSTransformComponent} from './css-transform-component';
 import {CSSNumberish, CSSNumericValue} from './css-numeric-value';
 import {DOMMatrix} from './dom-matrix';
 import {CSS} from './css';
+import {CSSUnitValue} from './css-unit-value';
 
 export class CSSRotate implements CSSTransformComponent {
 
@@ -35,7 +36,7 @@ export class CSSRotate implements CSSTransformComponent {
     }
 
     get is2D(): boolean {
-        return this.z.value !== 1;
+        return (this.z as CSSUnitValue).value === 1;
     }
 
     toMatrix(): DOMMatrix {

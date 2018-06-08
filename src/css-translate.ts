@@ -7,7 +7,7 @@ import {CSSUnitValue} from './css-unit-value';
 export class CSSTranslate implements CSSTransformComponent {
 
     get is2D(): boolean {
-        return (this.z as CSSUnitValue).value !== 0;
+        return (this.z as CSSUnitValue).value === 0;
     }
 
     toMatrix(): DOMMatrix {
