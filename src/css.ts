@@ -8,14 +8,14 @@ export class CSS {
             symbol: '',
             toCanonical: 0,
             compatSet: 0,
-            baseType: 'dimensionless',
+            baseType: 'number',
         },
         {
             name: 'percent',
             symbol: '%',
             toCanonical: 0,
             compatSet: 1,
-            baseType: 'dimensionless',
+            baseType: 'percent',
         },
 
         // <length>
@@ -171,7 +171,7 @@ export class CSS {
         {
             name: 'deg',
             symbol: 'deg',
-            toCanonical: 180 / Math.PI,
+            toCanonical: Math.PI / 180,
             compatSet: 16,
             baseType: 'angle',
         },

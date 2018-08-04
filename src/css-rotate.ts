@@ -40,17 +40,18 @@ export class CSSRotate implements CSSTransformComponent {
     }
 
     toMatrix(): DOMMatrix {
-        const x = this.x.to('px').value;
-        const y = this.y.to('px').value;
-        const z = this.z.to('px').value;
+        const x = (this.x as CSSUnitValue).value;
+        const y = (this.y as CSSUnitValue).value;
+        const z = (this.z as CSSUnitValue).value;
         const angle = this.angle.to('deg').value;
         return new DOMMatrix().rotateAxisAngleSelf(x, y, z, angle);
     }
 
     constructor(angle: CSSNumericValue, x?: CSSNumberish, y?: CSSNumberish, z?: CSSNumberish) {
         if (angle.type.size !== 1 || !angle.type.has('angle')) {
-            throw new TypeError(`Failed to construct CSSRotate: ${angle} is not an angle`);
+            throw new TypeError(`Failed to construct CSSRotate: ${JSON.stringify(angle)} is not an angle`);
         }
+        this.angle = angle;
         if (!x && !y && !z) {
             this.x = CSS.number(0);
             this.y = CSS.number(0);
@@ -59,7 +60,7 @@ export class CSSRotate implements CSSTransformComponent {
             this.x = x;
             this.y = y;
             this.z = z;
-            if (![this.x, this.y, this.z].every(v => CSS.getUnitData(v).baseType !== 'number')) {
+            if (![this.x, this.y, this.z].every(v => CSS.getUnitData(v).baseType === 'number')) {
                 throw new TypeError(`Failed to construct CSSRotate: Failed to rectify numberish value`);
             }
         }

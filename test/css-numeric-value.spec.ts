@@ -1,5 +1,6 @@
 import {expect} from 'chai';
 import {CSS} from '../src/css';
+import {CSSNumericValue} from '../src/css-numeric-value';
 
 describe('CSSNumericValue', () => {
 
@@ -33,7 +34,7 @@ describe('CSSNumericValue', () => {
 
     });
 
-    describe('#div', () => {
+    describe('#div()', () => {
 
         it('should create a CSSUnitValue from the division between unit and number', () => {
             expect(CSS.mm(30).div(2).to('mm')).to.be.deep.equal(CSS.mm(15));
@@ -41,10 +42,18 @@ describe('CSSNumericValue', () => {
 
     });
 
-    describe('#min', () => {
+    describe('#min()', () => {
 
         it('should create a CSSUnitValue from the minimum value provided', () => {
             expect(CSS.mm(30).min(CSS.mm(15), CSS.mm(2))).to.be.deep.equal(CSS.mm(2));
+        });
+
+    });
+
+    describe('#max()', () => {
+
+        it('should create a CSSUnitValue from the maximum value provided', () => {
+            expect(CSS.mm(30).max(CSS.mm(15), CSS.mm(2))).to.be.deep.equal(CSS.mm(30));
         });
 
     });
@@ -53,6 +62,30 @@ describe('CSSNumericValue', () => {
 
         it('should convert CSSUnitValue\'s with compatible units', () => {
             expect(CSS.px(10).to('cm').value).to.be.approximately(0.264583333, 0.000001);
+        });
+
+    });
+
+    describe('#equals()', () => {
+
+        it('should return true if the CSSUnitValue\'s are equal', () => {
+            expect(CSS.ch(15).equals(CSS.ch(15.0))).to.be.equal(true);
+        });
+
+    });
+
+    describe('#solve()', () => {
+
+        it('should solve a CSSMathValue when possible', () => {
+            expect(CSS.px(15).add(CSS.em(5)).solve()).to.be.deep.equal(CSS.px(20));
+        });
+
+    });
+
+    describe('#rectifyNumberishValue()', () => {
+
+        it('should rectify a numberish value', () => {
+            expect(CSSNumericValue.rectifyNumberishValue(2)).to.be.deep.equal(CSS.number(2));
         });
 
     });

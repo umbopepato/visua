@@ -171,12 +171,6 @@ export class DOMMatrixReadOnly {
         return result;
     }
 
-    inverse(): DOMMatrix {
-        let result = new DOMMatrix(this);
-        result.invertSelf();
-        return result;
-    }
-
     toArray(): number[] {
         return [
             this.m11,
@@ -351,14 +345,6 @@ export class DOMMatrix extends DOMMatrixReadOnly {
             1, Math.tan(toRad(sy)), 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
         ]));
         return this;
-    }
-
-    invertSelf(): DOMMatrix {
-        // TODO
-    }
-
-    setMatrixValue(transformList): DOMMatrix {
-        // TODO
     }
 
 }

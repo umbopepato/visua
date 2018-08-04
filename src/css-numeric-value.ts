@@ -126,7 +126,7 @@ export class CSSNumericValue extends CSSStyleValue {
 
     equals(...values: CSSNumberish[]): boolean {
         let rectifiedValues = values.map(CSSNumericValue.rectifyNumberishValue);
-        return values.every(val => {
+        return rectifiedValues.every(val => {
             if (val instanceof CSSUnitValue &&
                 this instanceof CSSUnitValue) {
                 return val.value === this.value &&
@@ -329,7 +329,6 @@ export class CSSNumericValue extends CSSStyleValue {
     }
 
     protected createType(unit: string): CSSNumericType {
-        console.log(`Creating type from ${unit}`);
         let result = new Map();
         const unitData = CSS.getUnitData(unit);
         if (unitData != null) {
@@ -379,7 +378,6 @@ export class CSSNumericValue extends CSSStyleValue {
                     }
                 });
             });
-            console.log(values);
             let types = values.map(v => this.createTypeFromUnitMap(v[1]));
             this.addTypes(types);
             return values;
@@ -473,11 +471,8 @@ export class CSSMathValue extends CSSNumericValue {
 }
 
 export class CSSMathInvert extends CSSMathValue {
-    readonly value;
-
-    constructor(value) {
+    constructor(readonly value) {
         super();
-        this.value = value;
     }
 }
 
@@ -500,28 +495,19 @@ export class CSSMathMin extends CSSMathValue {
 }
 
 export class CSSMathNegate extends CSSMathValue {
-    readonly value;
-
-    constructor(value) {
+    constructor(readonly value) {
         super();
-        this.value = value;
     }
 }
 
 export class CSSMathProduct extends CSSMathValue {
-    readonly values;
-
-    constructor(values) {
+    constructor(readonly values) {
         super();
-        this.values = values;
     }
 }
 
 export class CSSMathSum extends CSSMathValue {
-    readonly values;
-
-    constructor(values) {
+    constructor(readonly values) {
         super();
-        this.values = values;
     }
 }

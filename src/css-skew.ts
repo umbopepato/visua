@@ -7,9 +7,9 @@ export class CSSSkew implements CSSTransformComponent {
     readonly is2D: boolean = true;
 
     toMatrix(): DOMMatrix {
-        const ax = this.ax.to('deg').value;
-        const ay = this.ay.to('deg').value;
-        return new DOMMatrix().skewXSelf(ax).skewYSelf(ay);
+        const ax = this.ax.to('rad').value;
+        const ay = this.ay.to('rad').value;
+        return new DOMMatrix([1, Math.tan(ay), 0, 0, Math.tan(ax), 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
     }
 
     constructor(public ax: CSSNumericValue, public ay: CSSNumericValue) {

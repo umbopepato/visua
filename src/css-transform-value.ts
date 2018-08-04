@@ -9,7 +9,7 @@ export class CSSTransformValue {
 
     constructor(private transforms: CSSTransformComponent[]) {
         if (!transforms.length) {
-            throw new TypeError(`Failed to construct CSSTranformValue: Parameter transform is empty`)
+            throw new TypeError(`Failed to construct CSSTransformValue: Parameter transform is empty`)
         }
     }
 

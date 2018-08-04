@@ -22,7 +22,7 @@ program.command('init')
 program.parse(process.argv);*/
 
 const css = `
---prova: scale(1);
+--prova: yellow;
 `;
 
 const ast = cssTree.parse(css, {

@@ -59,7 +59,7 @@ export default class AstCssomConverter {
         this.validateAndExpandVariables();
 
         if (this.ast.type !== 'DeclarationList') {
-            throw new TypeError('identt config must be a list of variables');
+            throw new TypeError('visua config must be a list of variables');
         }
         if (!this.ast.children || !this.ast.children.length) {
             throw new TypeError('config seems empty');
