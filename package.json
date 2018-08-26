@@ -2,7 +2,7 @@
   "name": "visua",
   "version": "0.0.1",
   "description": "A powerful brand identity automation tool.",
-  "main": "visua.js",
+  "main": "dist/visua.js",
   "scripts": {
     "start": "node ./dist/cli/visua-cli.js",
     "test": "nyc ts-mocha -p ./ test/**/*.spec.ts",
@@ -16,6 +16,7 @@
     "type": "git",
     "url": "git+https://github.com/umbopepato/visua.git"
   },
+  "types": "dist/visua.d.ts",
   "author": "Umberto Pepato",
   "license": "ISC",
   "bugs": {

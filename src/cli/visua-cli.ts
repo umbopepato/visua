@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as program from 'commander';
-import {InitCommand} from './commands/init';
+import {init} from './commands/init';
+import {run} from './commands/run';
 
 program
     .version('0.0.1')
@@ -8,8 +9,13 @@ program
 
 program.command('init')
     .alias('initialize')
+    .option('prova')
+    .action(init);
+
+program.command('run')
+    .allowUnknownOption(true)
     .action(() => {
-        new InitCommand();
+        run(program.rawArgs.slice(3));
     });
 
 program.parse(process.argv);
