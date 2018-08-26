@@ -1,6 +1,6 @@
 import {expect} from 'chai';
-import {CSS} from '../src/css';
-import {CSSNumericValue} from '../src/css-numeric-value';
+import {CSS} from '../src/cssom/css';
+import {CSSNumericValue} from '../src/cssom/css-numeric-value';
 
 describe('CSSNumericValue', () => {
 

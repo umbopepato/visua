@@ -1,6 +1,6 @@
 import {expect} from 'chai';
-import {CSSRotate} from '../src/css-rotate';
-import {CSS} from '../src/css';
+import {CSSRotate} from '../src/cssom/css-rotate';
+import {CSS} from '../src/cssom/css';
 
 describe('CSSRotate', () => {
 

@@ -1,7 +1,7 @@
+import * as fs from 'fs';
 import * as cssTree from 'css-tree';
 import {StyleMap} from './style-map';
-import {CSSStyleValue} from './css-style-value';
-import {CSSHexColor, CSSHslaColor, CSSRgbaColor} from './css-color-value';
+import {CSSColorValue, CSSHexColor, CSSHslaColor, CSSRgbaColor} from './css-color-value';
 import {
     CSSMathInvert,
     CSSMathMax,
@@ -13,7 +13,6 @@ import {
 } from './css-numeric-value';
 import {CSSUnitValue} from './css-unit-value';
 import {CSSUrlValue} from './css-url-value';
-import {CSSTransformComponent} from './css-transform-component';
 import {CSSTransformValue} from './css-transform-value';
 import {DOMMatrix} from './dom-matrix';
 import {CSSTranslate} from './css-translate';
@@ -22,11 +21,13 @@ import {CSSScale} from './css-scale';
 import {CSSRotate} from './css-rotate';
 import {CSSSkew} from './css-skew';
 import {CSSPerspective} from './css-perspective';
+import {CSSKeywordValue} from './css-keyword-value';
+import {CSSPositionValue} from './css-position-value';
 
 export default class AstCssomConverter {
 
-    variables: {};
-    transformNames: string[] = [
+    private variables: {};
+    private transformNames: string[] = [
         'matrix',
         'translate',
         'translateX',
@@ -49,28 +50,25 @@ export default class AstCssomConverter {
         'rotateZ',
         'perspective',
     ];
+    private positionKeywords: string[] = [
+        'top',
+        'bottom',
+        'left',
+        'right',
+        'center',
+    ];
+    private cssOm: StyleMap = new StyleMap();
+    private secondaryStyleMaps: StyleMap[] = [];
 
-    constructor(private ast) {
-    };
+    constructor(private ast) { };
 
     getStyleMap() {
-        let cssOm = new StyleMap();
-
         this.validateAndExpandVariables();
-
-        if (this.ast.type !== 'DeclarationList') {
-            throw new TypeError('visua config must be a list of variables');
+        if (this.ast.type !== 'StyleSheet') {
+            throw new TypeError(`Couldn't recognize identity css file structure`);
         }
-        if (!this.ast.children || !this.ast.children.length) {
-            throw new TypeError('config seems empty');
-        }
-        for (let declaration of this.ast.children) {
-            if (declaration.type !== 'Declaration') {
-                throw new TypeError(`identt config must be a list of variables. ${declaration.type} is not`);
-            }
-            cssOm.set(declaration.property.substr(2), this.convertAstValue(declaration.value));
-        }
-        return cssOm;
+        this.processStyleSheet(this.ast);
+        return this.cssOm;
     }
 
     private validateAndExpandVariables() {
@@ -138,6 +136,80 @@ export default class AstCssomConverter {
         }
     }
 
+    private processStyleSheet(node) {
+        if (!node.children) {
+            console.warn('Empty stylesheet found');
+            return;
+        }
+        node.children.forEach(c => {
+            switch(c.type) {
+                case 'Atrule':
+                    this.processAtrule(c);
+                    break;
+                case 'Rule':
+                    this.processRule(c);
+                    break;
+                default:
+                    throw new TypeError(`Unexpected node ${c.type}`);
+            }
+        });
+    }
+
+    private processAtrule(node) {
+        if (node.name !== 'import') {
+            throw new TypeError(`Unexpected at-rule of type ${node.name}. Visua currently only supports \`import\` at-rules`);
+        }
+        if (node.prelude == null || node.prelude.children == null || !node.prelude.children.length) {
+            throw new TypeError(`Invalid import`);
+        }
+        let url = node.prelude.children[0].value;
+        if (typeof url !== 'string') {
+            throw new TypeError(`Invalid import`);
+        }
+        url = url.replace(/(?:^['"]|['"]$)/g, '');
+        fs.readFile(url, (err, content) => {
+            if (err) throw err;
+            let ast = cssTree.parse(content, {
+                parseCustomProperty: true,
+            });
+            let cssOm = new AstCssomConverter(ast).getStyleMap();
+            this.secondaryStyleMaps.push(cssOm);
+        });
+    }
+
+    private processRule(node) {
+        if (node.prelude == null ||
+            node.prelude.type !== 'SelectorList' ||
+            node.prelude.children == null ||
+            !node.prelude.children.length ||
+            node.prelude.children[0].children == null ||
+            !node.prelude.children[0].children.length) {
+            throw new TypeError(`Couldn't recognize main selector structure. See https://visua.io/docs/getting-started#identity-file-structure for guidance on structuring your css files.`);
+        }
+        let mainSelector = node.prelude.children[0].children[0];
+        if (mainSelector.type !== 'PseudoClassSelector' || mainSelector.name !== 'root') {
+            console.warn(`Main selector should be :root`);
+        }
+        if (node.block == null || node.block.children == null || !node.block.children.length) {
+            console.warn(`Empty identity file`);
+        }
+        node.block.children.forEach(declaration => {
+            if (declaration.type !== 'Declaration') {
+                throw new TypeError(`Unexpected node ${node.type}`);
+            }
+            this.cssOm.set(declaration.property, this.convertAstValue(declaration.value))
+        });
+        this.joinStyleMaps();
+    }
+
+    private joinStyleMaps() {
+        for (let secondaryStyleMap of this.secondaryStyleMaps) {
+            secondaryStyleMap.forEach((property, value) => {
+                this.cssOm.set(property, value);
+            });
+        }
+    }
+
     private convertAstValue(node) {
         switch (node.type) {
             case 'Value':
@@ -154,6 +226,8 @@ export default class AstCssomConverter {
                 return this.convertHex(node);
             case 'Parentheses':
                 return this.convertCalc(node.children);
+            case 'Identifier':
+                return this.convertIdentifier(node);
         }
     }
 
@@ -164,11 +238,22 @@ export default class AstCssomConverter {
             if (this.transformNames.includes(node.children[0].name)) {
                 return this.convertTransform(node);
             }
+            if (node.children.some(c => this.positionKeywords.includes(c.name)) ||
+            node.children.every(c => c.type === 'Percentage' || c.type === 'Dimension')) {
+                return this.convertPosition(node);
+            }
         }
     }
 
     private convertTransform(node) {
         return new CSSTransformValue(node.children.map(this.convertFunction));
+    }
+
+    private convertPosition(node) {
+        // @ts-ignore
+        return new CSSPositionValue(...node.children
+            .filter(c => c.type !== 'WhiteSpace')
+            .map(this.convertAstValue));
     }
 
     private convertDimension(node) {
@@ -189,6 +274,7 @@ export default class AstCssomConverter {
                 return this.convertMax(node);
             case 'rgba':
             case 'rgb':
+                // @ts-ignore
                 return new CSSRgbaColor(
                     ...node.children
                         .filter(c => c.type === 'Number')
@@ -196,6 +282,7 @@ export default class AstCssomConverter {
                 );
             case 'hsla':
             case 'hsl':
+                // @ts-ignore
                 return new CSSHslaColor(
                     ...node.children
                         .filter(c => c.type === 'Number' || c.type === 'Percentage' || c.type === 'Dimension')
@@ -220,6 +307,7 @@ export default class AstCssomConverter {
                 );
             case 'translate':
             case 'translate3d':
+                // @ts-ignore
                 return new CSSTranslate(
                     ...node.children
                         .filter(c => c.type === 'Dimension')
@@ -236,6 +324,7 @@ export default class AstCssomConverter {
                 if (node.children.length < 3) {
                     return new CSSScale(this.convertAstValue(node.children[0]), CSS.px(1));
                 }
+                // @ts-ignore
                 return new CSSScale(
                     ...node.children
                         .filter(c => c.type === 'Number')
@@ -264,6 +353,7 @@ export default class AstCssomConverter {
                 if (node.children.length < 3) {
                     return new CSSSkew(this.convertAstValue(node.children[0]), CSS.px(0));
                 }
+                // @ts-ignore
                 return new CSSSkew(
                     ...node.children
                         .filter(c => c.type === 'Dimension' || c.type === 'Number')
@@ -323,10 +413,24 @@ export default class AstCssomConverter {
     }
 
     private convertMin(node) {
-        return new CSSMathMin(...node.children.filter(c => c.type !== 'Whitespace').map(this.convertAstValue));
+        return new CSSMathMin(...node.children
+            .filter(c => c.type !== 'Whitespace')
+            .map(this.convertAstValue));
     }
 
     private convertMax(node) {
-        return new CSSMathMax(...node.children.filter(c => c.type !== 'Whitespace').map(this.fromAstValue));
+        return new CSSMathMax(...node.children
+            .filter(c => c.type !== 'Whitespace')
+            .map(this.convertAstValue));
+    }
+
+    private convertIdentifier(node) {
+        if (node.name === 'transparent') {
+            return new CSSRgbaColor(0, 0, 0, 0);
+        }
+        if (CSSColorValue.x11ColorsMap.hasOwnProperty(node.name)) {
+            return CSSHexColor.fromString(CSSColorValue.x11ColorsMap[node.value]);
+        }
+        return new CSSKeywordValue(node.name);
     }
 }

@@ -1,6 +1,6 @@
 import {expect} from 'chai';
-import {CSS} from '../src/css';
-import {CSSTranslate} from '../src/css-translate';
+import {CSS} from '../src/cssom/css';
+import {CSSTranslate} from '../src/cssom/css-translate';
 
 describe('CSSTranslate', () => {
 

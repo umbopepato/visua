@@ -1,7 +1,6 @@
 import {CSS} from './css';
 import {CSSUnitValue} from './css-unit-value';
 import {CSSStyleValue} from './css-style-value';
-import * as util from 'util';
 
 export type CSSNumberish = CSSNumericValue | number;
 

@@ -1,6 +1,6 @@
 import {expect} from 'chai';
-import {CSS} from '../src/css';
-import {CSSPerspective} from '../src/css-perspective';
+import {CSS} from '../src/cssom/css';
+import {CSSPerspective} from '../src/cssom/css-perspective';
 
 describe('CSSPerspective', () => {
 

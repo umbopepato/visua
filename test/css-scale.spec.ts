@@ -1,6 +1,6 @@
 import {expect} from 'chai';
-import {CSS} from '../src/css';
-import {CSSScale} from '../src/css-scale';
+import {CSS} from '../src/cssom/css';
+import {CSSScale} from '../src/cssom/css-scale';
 
 describe('CSSScale', () => {
 

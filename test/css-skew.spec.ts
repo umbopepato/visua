@@ -1,6 +1,6 @@
 import {expect} from 'chai';
-import {CSS} from '../src/css';
-import {CSSSkew} from '../src/css-skew';
+import {CSS} from '../src/cssom/css';
+import {CSSSkew} from '../src/cssom/css-skew';
 
 describe('CSSSkew', () => {
 

@@ -31,7 +31,7 @@ export class StyleMap {
         this.map[property] = value;
     }
 
-    forEach(callbackFn: (name: string, value: CSSStyleValue) => void) {
+    forEach(callbackFn: (property: string, value: CSSStyleValue) => void) {
         Object.keys(this.map).forEach(key => {
             callbackFn(key, this.map[key]);
         });

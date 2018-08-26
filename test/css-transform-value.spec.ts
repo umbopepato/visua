@@ -1,9 +1,9 @@
 import {expect} from 'chai';
-import {CSSTransformValue} from '../src/css-transform-value';
-import {CSSTranslate} from '../src/css-translate';
-import {CSS} from '../src/css';
-import {CSSRotate} from '../src/css-rotate';
-import {CSSSkew} from '../src/css-skew';
+import {CSSTransformValue} from '../src/cssom/css-transform-value';
+import {CSSTranslate} from '../src/cssom/css-translate';
+import {CSS} from '../src/cssom/css';
+import {CSSRotate} from '../src/cssom/css-rotate';
+import {CSSSkew} from '../src/cssom/css-skew';
 
 
 describe('CSSTransformValue', () => {
