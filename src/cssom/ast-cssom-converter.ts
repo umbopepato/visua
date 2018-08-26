@@ -23,6 +23,7 @@ import {CSSSkew} from './css-skew';
 import {CSSPerspective} from './css-perspective';
 import {CSSKeywordValue} from './css-keyword-value';
 import {CSSPositionValue} from './css-position-value';
+import * as fsPath from 'path';
 
 export default class AstCssomConverter {
 
@@ -57,10 +58,11 @@ export default class AstCssomConverter {
         'right',
         'center',
     ];
-    private cssOm: StyleMap = new StyleMap();
+    private styleMap: StyleMap = new StyleMap();
     private secondaryStyleMaps: StyleMap[] = [];
 
-    constructor(private ast) { };
+    constructor(private ast, private identityDir = '') {
+    };
 
     getStyleMap() {
         this.validateAndExpandVariables();
@@ -68,7 +70,7 @@ export default class AstCssomConverter {
             throw new TypeError(`Couldn't recognize identity css file structure`);
         }
         this.processStyleSheet(this.ast);
-        return this.cssOm;
+        return this.styleMap;
     }
 
     private validateAndExpandVariables() {
@@ -142,9 +144,9 @@ export default class AstCssomConverter {
             return;
         }
         node.children.forEach(c => {
-            switch(c.type) {
+            switch (c.type) {
                 case 'Atrule':
-                    this.processAtrule(c);
+                    this.processAtRule(c);
                     break;
                 case 'Rule':
                     this.processRule(c);
@@ -153,9 +155,10 @@ export default class AstCssomConverter {
                     throw new TypeError(`Unexpected node ${c.type}`);
             }
         });
+        this.joinStyleMaps();
     }
 
-    private processAtrule(node) {
+    private processAtRule(node) {
         if (node.name !== 'import') {
             throw new TypeError(`Unexpected at-rule of type ${node.name}. Visua currently only supports \`import\` at-rules`);
         }
@@ -167,14 +170,13 @@ export default class AstCssomConverter {
             throw new TypeError(`Invalid import`);
         }
         url = url.replace(/(?:^['"]|['"]$)/g, '');
-        fs.readFile(url, (err, content) => {
-            if (err) throw err;
-            let ast = cssTree.parse(content, {
-                parseCustomProperty: true,
-            });
-            let cssOm = new AstCssomConverter(ast).getStyleMap();
-            this.secondaryStyleMaps.push(cssOm);
+        let path = fsPath.normalize(`${this.identityDir}/${url}`);
+        let importedStyleSheet = fs.readFileSync(path);
+        let ast = cssTree.parse(importedStyleSheet, {
+            parseCustomProperty: true,
         });
+        let styleMap = new AstCssomConverter(ast, fsPath.dirname(path)).getStyleMap();
+        this.secondaryStyleMaps.push(styleMap);
     }
 
     private processRule(node) {
@@ -197,15 +199,14 @@ export default class AstCssomConverter {
             if (declaration.type !== 'Declaration') {
                 throw new TypeError(`Unexpected node ${node.type}`);
             }
-            this.cssOm.set(declaration.property, this.convertAstValue(declaration.value))
+            this.styleMap.set(declaration.property, this.convertAstValue(declaration.value));
         });
-        this.joinStyleMaps();
     }
 
     private joinStyleMaps() {
         for (let secondaryStyleMap of this.secondaryStyleMaps) {
             secondaryStyleMap.forEach((property, value) => {
-                this.cssOm.set(property, value);
+                this.styleMap.set(property, value);
             });
         }
     }
@@ -239,7 +240,7 @@ export default class AstCssomConverter {
                 return this.convertTransform(node);
             }
             if (node.children.some(c => this.positionKeywords.includes(c.name)) ||
-            node.children.every(c => c.type === 'Percentage' || c.type === 'Dimension')) {
+                node.children.every(c => c.type === 'Percentage' || c.type === 'Dimension')) {
                 return this.convertPosition(node);
             }
         }
@@ -328,7 +329,7 @@ export default class AstCssomConverter {
                 return new CSSScale(
                     ...node.children
                         .filter(c => c.type === 'Number')
-                        .map(this.convertAstValue)
+                        .map(this.convertAstValue),
                 );
             case 'scaleX':
                 return new CSSScale(this.convertAstValue(node.children[0]), CSS.px(0));
@@ -357,7 +358,7 @@ export default class AstCssomConverter {
                 return new CSSSkew(
                     ...node.children
                         .filter(c => c.type === 'Dimension' || c.type === 'Number')
-                        .map(this.convertAstValue)
+                        .map(this.convertAstValue),
                 );
             case 'skewX':
                 return new CSSSkew(this.convertAstValue(node.children[0]), CSS.px(0));
@@ -429,7 +430,7 @@ export default class AstCssomConverter {
             return new CSSRgbaColor(0, 0, 0, 0);
         }
         if (CSSColorValue.x11ColorsMap.hasOwnProperty(node.name)) {
-            return CSSHexColor.fromString(CSSColorValue.x11ColorsMap[node.value]);
+            return CSSHexColor.fromString(CSSColorValue.x11ColorsMap[node.name]);
         }
         return new CSSKeywordValue(node.name);
     }
