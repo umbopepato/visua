@@ -1,4 +1,5 @@
 import {CSSStyleValue} from './css-style-value';
+import {removeLeadingDashes, toCamelCase} from '../util';
 
 export class StyleMapEntry {
     constructor(public name: string, public value: CSSStyleValue) {}
@@ -14,26 +15,27 @@ export class StyleMap {
     /**
      * Gets the CSSStyleValue given the corresponding property name
      *
-     * @param property The name of the property (prepending `--` to the name of the property is recommended but not mandatory)
+     * @param property The name of the property (prepending `--` is not necessary but allowed)
      * @returns The corresponding style value
      */
     get(property: string): CSSStyleValue {
-        if (!property.startsWith('--')) property = `--${property}`;
-        if (!this.map.hasOwnProperty(property)) return;
-        return this.map[property];
+        let resolvedProperty = removeLeadingDashes(property);
+        if (!this.map.hasOwnProperty(resolvedProperty)) return;
+        return this.map[resolvedProperty];
     }
 
     /**
      * Gets the CSSStyleValues corresponding to the given array of property names
      *
      * @param properties The array of property names
-     * @returns The Object containing the properties which have been found
+     * @returns The Object of found properties (the names are converted from hyphen-case to camel-case to allow for destructuring declarations)
      */
-    getAll(properties: string[]): Object {
+    getAll(properties: string[]): {[key: string]: CSSStyleValue} {
         let entries = {};
         properties.forEach(propName => {
-            let property = this.get(propName);
-            if (property) entries[propName] = property;
+            let resolvedProperty = removeLeadingDashes(propName);
+            let property = this.get(resolvedProperty);
+            if (property) entries[toCamelCase(resolvedProperty)] = property;
         });
         return entries;
     }
@@ -56,7 +58,6 @@ export class StyleMap {
      * @param value The value of the property
      */
     set(property: string, value: CSSStyleValue) {
-        if (!property.startsWith('--')) property = `--${property}`;
         if (this.map.hasOwnProperty(property)) {
             console.warn(`Warn: variable ${property} has been defined more times.`);
         }

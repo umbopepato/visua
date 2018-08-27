@@ -24,6 +24,7 @@ import {CSSPerspective} from './css-perspective';
 import {CSSKeywordValue} from './css-keyword-value';
 import {CSSPositionValue} from './css-position-value';
 import * as fsPath from 'path';
+import {removeLeadingDashes} from '../util';
 
 export default class AstCssomConverter {
 
@@ -199,7 +200,7 @@ export default class AstCssomConverter {
             if (declaration.type !== 'Declaration') {
                 throw new TypeError(`Unexpected node ${node.type}`);
             }
-            this.styleMap.set(declaration.property, this.convertAstValue(declaration.value));
+            this.styleMap.set(removeLeadingDashes(declaration.property), this.convertAstValue(declaration.value));
         });
     }
 

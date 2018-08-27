@@ -1,3 +1,5 @@
+import {toRad} from '../util';
+
 export class DOMMatrixReadOnly {
 
     readonly b: number;
@@ -348,5 +350,3 @@ export class DOMMatrix extends DOMMatrixReadOnly {
     }
 
 }
-
-const toRad = (angle: number): number => angle * Math.PI / 180;

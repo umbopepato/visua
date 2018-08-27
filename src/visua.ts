@@ -4,24 +4,6 @@ import * as fsPath from 'path';
 import * as fs from 'fs';
 import {StyleMap} from './cssom/style-map';
 
-export * from './cssom/style-map.js';
-export * from './cssom/css.js';
-export * from './cssom/css-color-value.js';
-export * from './cssom/css-keyword-value.js';
-export * from './cssom/css-numeric-value.js';
-export * from './cssom/css-perspective.js';
-export * from './cssom/css-position-value.js';
-export * from './cssom/css-rotate.js';
-export * from './cssom/css-scale.js';
-export * from './cssom/css-skew.js';
-export * from './cssom/css-skew-x.js';
-export * from './cssom/css-skew-y.js';
-export * from './cssom/css-style-value.js';
-export * from './cssom/css-transform-value.js';
-export * from './cssom/css-translate.js';
-export * from './cssom/css-unit-value.js';
-export * from './cssom/css-url-value.js';
-export * from './cssom/dom-matrix.js';
 export type Task = (styleMap: StyleMap, args: {[key: string]: string}) => any;
 
 /**

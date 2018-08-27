@@ -48,4 +48,8 @@ export class CSSUnitValue extends CSSNumericValue {
         );
     }
 
+    toString() {
+        return `${this.value}${CSS.getUnitData(this.unit).symbol}`;
+    }
+
 }
