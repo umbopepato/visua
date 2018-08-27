@@ -27,13 +27,13 @@ export class StyleMap {
      * Gets the CSSStyleValues corresponding to the given array of property names
      *
      * @param properties The array of property names
-     * @returns An array of StyleMapEntries (if a property has not been found it will not be included in the array)
+     * @returns The Object containing the properties which have been found
      */
-    getAll(properties: string[]): StyleMapEntry[] {
-        let entries: StyleMapEntry[] = [];
+    getAll(properties: string[]): Object {
+        let entries = {};
         properties.forEach(propName => {
             let property = this.get(propName);
-            if (property) entries.push(new StyleMapEntry(propName, property));
+            if (property) entries[propName] = property;
         });
         return entries;
     }
