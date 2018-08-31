@@ -24,7 +24,8 @@ import {CSSPerspective} from './css-perspective';
 import {CSSKeywordValue} from './css-keyword-value';
 import {CSSPositionValue} from './css-position-value';
 import * as fsPath from 'path';
-import {removeLeadingDashes} from '../util';
+import {removeLeadingDashes, removeQuotes} from '../util';
+import {CSSStringValue} from './css-string-value';
 
 export default class AstCssomConverter {
 
@@ -170,7 +171,7 @@ export default class AstCssomConverter {
         if (typeof url !== 'string') {
             throw new TypeError(`Invalid import`);
         }
-        url = url.replace(/(?:^['"]|['"]$)/g, '');
+        url = removeQuotes(url);
         let path = fsPath.normalize(`${this.identityDir}/${url}`);
         let importedStyleSheet = fs.readFileSync(path);
         let ast = cssTree.parse(importedStyleSheet, {
@@ -200,7 +201,10 @@ export default class AstCssomConverter {
             if (declaration.type !== 'Declaration') {
                 throw new TypeError(`Unexpected node ${node.type}`);
             }
-            this.styleMap.set(removeLeadingDashes(declaration.property), this.convertAstValue(declaration.value));
+            let value = this.convertAstValue(declaration.value);
+            if (value != null) {
+                this.styleMap.set(removeLeadingDashes(declaration.property), value);
+            }
         });
     }
 
@@ -218,6 +222,8 @@ export default class AstCssomConverter {
                 return this.convertDeclaration(node);
             case 'Dimension':
                 return this.convertDimension(node);
+            case 'String':
+                return this.convertString(node);
             case 'Number':
                 return this.convertNumber(node);
             case 'Function':
@@ -396,7 +402,7 @@ export default class AstCssomConverter {
     }
 
     private convertCalcBinaryExpression(left, operator, right) {
-        let mathValue, result: CSSMathValue;
+        let mathValue: CSSMathValue;
         let leftValue = left.length === 1 ? this.convertAstValue(left[0]) : this.convertCalc(left);
         let rightValue = right.length === 1 ? this.convertAstValue(right[0]) : this.convertCalc(right);
         if (operator === '-') rightValue = new CSSMathNegate(rightValue);
@@ -434,5 +440,9 @@ export default class AstCssomConverter {
             return CSSHexColor.fromString(CSSColorValue.x11ColorsMap[node.name]);
         }
         return new CSSKeywordValue(node.name);
+    }
+
+    private convertString(node) {
+        return new CSSStringValue(node.value);
     }
 }

@@ -2,6 +2,10 @@ export const removeLeadingDashes = (property: string): string => {
     return property.replace(/^-+/, '');
 };
 
+export const removeQuotes = (string: string): string => {
+    return string.replace(/(?:^['"]|['"]$)/g, '');
+};
+
 export const toCamelCase = (property: string): string => {
     return property.replace(/-([a-zA-Z0-9_])/g, (match, letter) => letter.toUpperCase());
 };
