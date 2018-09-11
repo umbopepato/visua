@@ -382,7 +382,7 @@ export class CSS {
     static resolveUnit(unit: string): string {
         let unitData = CSS.units.find(u => u.name === unit || u.symbol === unit);
         if (!unitData) {
-            throw new TypeError(`Failed to construct 'CSSUnitValue': Invalid unit ${unit}`);
+            throw new TypeError(`Invalid unit ${unit}`);
         }
         return unitData.name;
     }

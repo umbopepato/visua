@@ -127,14 +127,14 @@ export default class AstCssomConverter {
     private validateVariableReferences() {
         for (let variableKey in this.variables) {
             if (this.variables[variableKey].internalReferences.includes(variableKey)) {
-                throw new TypeError(`variable ${variableKey} references itself`);
+                throw new TypeError(`Variable ${variableKey} references itself`);
             }
             this.variables[variableKey].internalReferences.forEach(variable => {
                 if (!this.variables.hasOwnProperty(variable)) {
-                    throw new TypeError(`undefined variable ${variable}`);
+                    throw new TypeError(`Undefined variable ${variable}`);
                 }
                 if (this.variables[variable].internalReferences.includes(variableKey)) {
-                    throw new TypeError(`circular variable reference involving ${variableKey} and ${variable}`);
+                    throw new TypeError(`Circular variable reference involving ${variableKey} and ${variable}`);
                 }
             });
         }
@@ -162,7 +162,7 @@ export default class AstCssomConverter {
 
     private processAtRule(node) {
         if (node.name !== 'import') {
-            throw new TypeError(`Unexpected at-rule of type ${node.name}. Visua currently only supports \`import\` at-rules`);
+            throw new TypeError(`Unexpected at-rule of type ${node.name}. Visua currently only supports \`@import\` at-rules`);
         }
         if (node.prelude == null || node.prelude.children == null || !node.prelude.children.length) {
             throw new TypeError(`Invalid import`);
