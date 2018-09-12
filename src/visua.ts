@@ -22,7 +22,6 @@ export * from './cssom/css-translate';
 export * from './cssom/css-unit-value';
 export * from './cssom/css-url-value';
 export * from './cssom/dom-matrix';
-export type Task = (styleMap: StyleMap, args: {[key: string]: string}) => any;
 
 /**
  * Builds a StyleMap given the path of the main identity stylesheet
@@ -36,8 +35,10 @@ export const visua = (path: string): Promise<StyleMap> => {
             const ast = cssTree.parse(fs.readFileSync(path, {encoding: 'UTF-8'}), {
                 parseCustomProperty: true,
                 onParseError: reject,
+                positions: true,
+                filename: path,
             });
-            console.log(JSON.stringify(cssTree.toPlainObject(ast), null, 4));
+            //console.log(JSON.stringify(cssTree.toPlainObject(ast), null, 4));
             resolve(new AstCssomConverter(ast, fsPath.dirname(path)).getStyleMap());
         } catch (e) {
             reject(e);

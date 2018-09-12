@@ -24,8 +24,9 @@ import {CSSPerspective} from './css-perspective';
 import {CSSKeywordValue} from './css-keyword-value';
 import {CSSPositionValue} from './css-position-value';
 import * as fsPath from 'path';
-import {removeLeadingDashes, removeQuotes} from '../util';
+import {removeLeadingDashes, removeQuotes, warnAt} from '../util';
 import {CSSStringValue} from './css-string-value';
+import {logger} from '../logger';
 
 export default class AstCssomConverter {
 
@@ -69,7 +70,7 @@ export default class AstCssomConverter {
     getStyleMap() {
         this.validateAndExpandVariables();
         if (this.ast.type !== 'StyleSheet') {
-            throw new TypeError(`Couldn't recognize identity css file structure`);
+            throw new CssomConvertionError(`Couldn't recognize identity css file structure`);
         }
         this.processStyleSheet(this.ast);
         return this.styleMap;
@@ -108,7 +109,7 @@ export default class AstCssomConverter {
             if (node.type === 'Declaration') {
                 if (node.property != null && node.property.startsWith('--')) {
                     let value = cssTree.toPlainObject(node.value).children[0];
-                    if (!value) throw new TypeError(`variable ${node.property} is empty`);
+                    if (!value) throw new CssomConvertionError(`Variable ${node.property} is empty`, value.loc);
                     variables[node.property] = {
                         value: value,
                         internalReferences: [],
@@ -127,22 +128,22 @@ export default class AstCssomConverter {
     private validateVariableReferences() {
         for (let variableKey in this.variables) {
             if (this.variables[variableKey].internalReferences.includes(variableKey)) {
-                throw new TypeError(`Variable ${variableKey} references itself`);
+                throw new CssomConvertionError(`Variable ${variableKey} references itself`);
             }
             this.variables[variableKey].internalReferences.forEach(variable => {
                 if (!this.variables.hasOwnProperty(variable)) {
-                    throw new TypeError(`Undefined variable ${variable}`);
+                    throw new CssomConvertionError(`Undefined variable ${variable}`);
                 }
                 if (this.variables[variable].internalReferences.includes(variableKey)) {
-                    throw new TypeError(`Circular variable reference involving ${variableKey} and ${variable}`);
+                    throw new CssomConvertionError(`Circular variable reference involving ${variableKey} and ${variable}`);
                 }
             });
         }
     }
 
     private processStyleSheet(node) {
-        if (!node.children) {
-            console.warn('Empty stylesheet found');
+        if (!node.children || !node.children.length) {
+            logger.warn('Empty stylesheet found');
             return;
         }
         node.children.forEach(c => {
@@ -154,7 +155,7 @@ export default class AstCssomConverter {
                     this.processRule(c);
                     break;
                 default:
-                    throw new TypeError(`Unexpected node ${c.type}`);
+                    throw new CssomConvertionError(`Unexpected node ${c.type}`);
             }
         });
         this.joinStyleMaps();
@@ -162,14 +163,15 @@ export default class AstCssomConverter {
 
     private processAtRule(node) {
         if (node.name !== 'import') {
-            throw new TypeError(`Unexpected at-rule of type ${node.name}. Visua currently only supports \`@import\` at-rules`);
+            warnAt(`Unexpected at-rule of type ${node.name}. Visua currently only supports \`@import\` at-rules`, node.loc);
+            return;
         }
         if (node.prelude == null || node.prelude.children == null || !node.prelude.children.length) {
-            throw new TypeError(`Invalid import`);
+            throw new CssomConvertionError(`Invalid import`, node.loc);
         }
         let url = node.prelude.children[0].value;
         if (typeof url !== 'string') {
-            throw new TypeError(`Invalid import`);
+            throw new CssomConvertionError(`Invalid import`, node.prelude.children[0].loc);
         }
         url = removeQuotes(url);
         let path = fsPath.normalize(`${this.identityDir}/${url}`);
@@ -188,18 +190,19 @@ export default class AstCssomConverter {
             !node.prelude.children.length ||
             node.prelude.children[0].children == null ||
             !node.prelude.children[0].children.length) {
-            throw new TypeError(`Couldn't recognize main selector structure. See https://visua.io/docs/getting-started#identity-file-structure for guidance on structuring your css files.`);
+            throw new CssomConvertionError(`Couldn't recognize main selector structure. See https://visua.io/guide/structuring-identity-files for guidance on structuring your css files.`,
+                node.loc);
         }
         let mainSelector = node.prelude.children[0].children[0];
         if (mainSelector.type !== 'PseudoClassSelector' || mainSelector.name !== 'root') {
-            console.warn(`Main selector should be :root`);
+            throw new CssomConvertionError(`Unexpected selector ${mainSelector.name}. Main selector should be :root`, mainSelector.loc);
         }
         if (node.block == null || node.block.children == null || !node.block.children.length) {
-            console.warn(`Empty identity file`);
+            logger.warn(`Empty identity file`);
         }
         node.block.children.forEach(declaration => {
             if (declaration.type !== 'Declaration') {
-                throw new TypeError(`Unexpected node ${node.type}`);
+                throw new CssomConvertionError(`Unexpected node ${node.type}`, node.loc);
             }
             let value = this.convertAstValue(declaration.value);
             if (value != null) {
@@ -390,7 +393,8 @@ export default class AstCssomConverter {
 
     private convertCalc(components) {
         const children = components.filter(c => c.type !== 'WhiteSpace');
-        if (children.length < 3) throw new TypeError(`Failed to convert ${components} to CSSMathValue: Too few arguments`);
+        if (children.length < 3) throw new CssomConvertionError(`Failed to convert ${components} to CSSMathValue: Too few arguments`,
+            components[0].loc);
         let top = children.length - 2;
         for (let i = top; i > 0; i -= 2) {
             if (children[i].value === '+' || children[i].value === '-') {
@@ -445,4 +449,14 @@ export default class AstCssomConverter {
     private convertString(node) {
         return new CSSStringValue(node.value);
     }
+}
+
+class CssomConvertionError extends Error {
+
+    constructor(message: string, location?: { source: string, start: { line: number, column: string } }) {
+        super(`${message}${location ? `\n    at ${location.source}:${location.start.line}:${location.start.column}` : ``}`);
+        this.name = this.constructor.name;
+        Error.captureStackTrace(this, this.constructor);
+    }
+
 }

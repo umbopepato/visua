@@ -1,5 +1,7 @@
 import {CSSStyleValue} from './css-style-value';
 import {removeLeadingDashes, toCamelCase} from '../util';
+import * as Table from 'cli-table';
+import {logger} from '../logger';
 
 export class StyleMapEntry {
     constructor(public name: string, public value: CSSStyleValue) {}
@@ -59,7 +61,7 @@ export class StyleMap {
      */
     set(property: string, value: CSSStyleValue) {
         if (this.map.hasOwnProperty(property)) {
-            console.warn(`Warn: variable ${property} has been defined more times.`);
+            logger.warn(`Warn: variable ${property} has been defined more times.`);
         }
         this.map[property] = value;
     }
@@ -75,8 +77,15 @@ export class StyleMap {
         });
     }
 
-    toString() {
-        return `${this.map}`;
+    print() {
+        let table = new Table({
+            head: ['Variable', 'CSSStyleValue instance', 'Value'],
+        });
+        table.push(...Object
+            .entries(this.map)
+            .map(e => [e[0], e[1].constructor.name, e[1]] as string[]));
+        console.log('StyleMap:');
+        console.log(table.toString());
     }
 
 }

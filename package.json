@@ -37,8 +37,10 @@
   },
   "dependencies": {
     "chalk": "^2.4.1",
+    "cli-table": "^0.3.1",
     "commander": "^2.15.1",
-    "css-tree": "^1.0.0-alpha.29"
+    "css-tree": "^1.0.0-alpha.29",
+    "winston": "^3.1.0"
   },
   "nyc": {
     "extension": [

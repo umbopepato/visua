@@ -2,6 +2,7 @@
 import * as program from 'commander';
 import {init} from './commands/init';
 import {run} from './commands/run';
+import {test} from './commands/test';
 
 program
     .version('0.0.1')
@@ -11,6 +12,10 @@ program.command('init')
     .alias('initialize')
     .option('prova')
     .action(init);
+
+program.command('test')
+    .alias('t')
+    .action(test);
 
 program.command('run')
     .allowUnknownOption(true)

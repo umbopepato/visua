@@ -1,4 +1,5 @@
 import {loadStyles} from '../load-styles';
+import {logger} from '../../logger';
 
 export const run = async (args: string[]) => {
     try {
@@ -17,7 +18,7 @@ export const run = async (args: string[]) => {
             try {
                 taskFn = require(`${process.cwd()}/node_modules/visua-${taskArgs[0]}`).default;
             } catch (error) {
-                console.error(`Error: Cannot find plugin named visua-${taskArgs[0]}.\n\nMake sure that you have run \`npm install --save visua-${taskArgs[0]}\` and check that you have typed correctly the name of the plugin.\nAlso, when you run \`visua run <plugin name>\` you don't have to prepend visua- to the name of the plugin (i.e. visua-bootstrap -> visua run bootstrap).\n(Plugins installed as global packages are not yet supported)`);
+                logger.error(`Error: Cannot find plugin named visua-${taskArgs[0]}.\n\nMake sure that you have run \`npm install --save visua-${taskArgs[0]}\` and check that you have typed correctly the name of the plugin.\nAlso, when you run \`visua run <plugin name>\` you don't have to prepend visua- to the name of the plugin (i.e. visua-bootstrap -> visua run bootstrap).\n(Plugins installed as global packages are not yet supported)`);
             }
             if (taskFn != null) {
                 if (typeof taskFn === 'function') {
@@ -33,6 +34,6 @@ export const run = async (args: string[]) => {
             }
         }
     } catch (error) {
-        console.error(error.formattedMessage || error);
+        logger.error(error.formattedMessage || error);
     }
 };
