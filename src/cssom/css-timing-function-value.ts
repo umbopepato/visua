@@ -1,4 +1,5 @@
 import {inRange} from '../util';
+import {CSSStyleValue} from './css-style-value';
 
 export enum CSSTimingFunction {
     ease = 'ease',
@@ -18,9 +19,11 @@ export enum CSSStepPosition {
     end = 'end',
 }
 
-export class CSSTimingFunctionValue {
+export class CSSTimingFunctionValue extends CSSStyleValue {
 
-    constructor(public type: CSSTimingFunction) {}
+    constructor(public type: CSSTimingFunction) {
+        super();
+    }
 
     is(type: string | CSSTimingFunction): boolean {
         return this.type === type;

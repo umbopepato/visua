@@ -21,7 +21,7 @@ import {CSSScale} from './css-scale';
 import {CSSRotate} from './css-rotate';
 import {CSSSkew} from './css-skew';
 import {CSSPerspective} from './css-perspective';
-import {CSSKeywordValue} from './css-keyword-value';
+import {CSSKeywordsValue, CSSKeywordValue} from './css-keyword-value';
 import {CSSPositionValue} from './css-position-value';
 import * as fsPath from 'path';
 import {removeLeadingDashes, removeQuotes, warnAt} from '../util';
@@ -302,6 +302,10 @@ export default class AstCssomConverter {
             if (node.children.some(c => this.positionKeywords.includes(c.name)) ||
                 node.children.every(c => c.type === NodeType.Percentage || c.type === NodeType.Dimension)) {
                 return this.convertPosition(node);
+            }
+            let childrenNoWhitespaces = node.children.filter(removeWhiteSpaces());
+            if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier)) {
+                return new CSSKeywordsValue(childrenNoWhitespaces.map(c => this.convertAstValue(c)));
             }
         }
     }
