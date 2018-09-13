@@ -1,10 +1,12 @@
 import {CSSStyleValue} from './css-style-value';
 import {removeLeadingDashes, toCamelCase} from '../util';
-import * as Table from 'cli-table';
+import {table, getBorderCharacters} from 'table';
 import {logger} from '../logger';
+import chalk from 'chalk';
 
 export class StyleMapEntry {
-    constructor(public name: string, public value: CSSStyleValue) {}
+    constructor(public name: string, public value: CSSStyleValue) {
+    }
 }
 
 /**
@@ -32,7 +34,7 @@ export class StyleMap {
      * @param properties The array of property names
      * @returns The Object of found properties (the names are converted from hyphen-case to camel-case to allow for destructuring declarations)
      */
-    getAll(properties: string[]): {[key: string]: CSSStyleValue} {
+    getAll(properties: string[]): { [key: string]: CSSStyleValue } {
         let entries = {};
         properties.forEach(propName => {
             let resolvedProperty = removeLeadingDashes(propName);
@@ -78,14 +80,15 @@ export class StyleMap {
     }
 
     print() {
-        let table = new Table({
-            head: ['Variable', 'CSSStyleValue instance', 'Value'],
-        });
-        table.push(...Object
+        const header = [chalk.bold('Variable'), chalk.bold('CSSStyleValue instance'), chalk.bold('Value')];
+        logger.info(`StyleMap:\n${table([
+            header,
+            ...Object
             .entries(this.map)
-            .map(e => [`--${e[0]}`, e[1].constructor.name, e[1]] as string[]));
-        console.log('StyleMap:');
-        console.log(table.toString());
+            .map(e => [`--${e[0]}`, e[1].constructor.name, e[1]] as string[])
+        ], {
+            border: getBorderCharacters('norc'),
+        })}`);
     }
 
 }

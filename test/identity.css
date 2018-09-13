@@ -2,4 +2,12 @@
 
 :root {
     --spacer: 8px;
+    --prova1: cubic-bezier(0, 0.2, 0.4, 0.8);
+    --prova2: steps(3, start);
+    --prova3: steps(4);
+    --prova4: frames(6);
+    --prova5: ease;
+    --prova6: ease-in;
+    --prova7: ease-in-out;
+    --prova8: ease-out;
 }

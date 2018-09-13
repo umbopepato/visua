@@ -27,6 +27,11 @@ import * as fsPath from 'path';
 import {removeLeadingDashes, removeQuotes, warnAt} from '../util';
 import {CSSStringValue} from './css-string-value';
 import {logger} from '../logger';
+import {
+    CSSCubicBezierTimingFunction, CSSFramesTimingFunction,
+    CSSStepsTimingFunction,
+    CSSTimingFunctionValue,
+} from './css-timing-function-value';
 
 enum NodeType {
     AnPlusB = 'AnPlusB',
@@ -75,7 +80,7 @@ enum NodeType {
 export default class AstCssomConverter {
 
     private variables: {};
-    private transformNames: string[] = [
+    private transformKeywords: string[] = [
         'matrix',
         'translate',
         'translateX',
@@ -104,6 +109,15 @@ export default class AstCssomConverter {
         'left',
         'right',
         'center',
+    ];
+    private timingFunctionKeywords: string[] = [
+        'ease',
+        'ease-in',
+        'ease-out',
+        'ease-in-out',
+        'linear',
+        'step-start',
+        'step-end',
     ];
     private styleMap: StyleMap = new StyleMap();
     private secondaryStyleMaps: StyleMap[] = [];
@@ -290,7 +304,7 @@ export default class AstCssomConverter {
         if (node.children.length === 1) {
             return this.convertAstValue(node.children[0]);
         } else {
-            if (this.transformNames.includes(node.children[0].name)) {
+            if (this.transformKeywords.includes(node.children[0].name)) {
                 return this.convertTransform(node);
             }
             if (node.children.some(c => this.positionKeywords.includes(c.name)) ||
@@ -399,11 +413,12 @@ export default class AstCssomConverter {
                 return new CSSRotate(this.convertAstValue(node.children[0]), 0, 1, 0);
             case 'rotateZ':
                 return new CSSRotate(this.convertAstValue(node.children[0]), 0, 0, 1);
-            case 'rotate3d':
+            case 'rotate3d': { // Needed because of ts issue #12220
                 const params = node.children
                     .filter(keepTypes(NodeType.Number, NodeType.Dimension))
                     .map(this.convertAstValue);
                 return new CSSRotate(params[3], params[0], params[1], params[2]);
+            }
             case 'skew':
                 if (node.children.length < 3) {
                     return new CSSSkew(this.convertAstValue(node.children[0]), CSS.px(0));
@@ -420,6 +435,23 @@ export default class AstCssomConverter {
                 return new CSSSkew(CSS.px(0), this.convertAstValue(node.children[0]));
             case 'perspective':
                 return new CSSPerspective(this.convertAstValue(node.children[0]));
+            case 'cubic-bezier':
+                // @ts-ignore
+                return new CSSCubicBezierTimingFunction(
+                    ...node.children
+                        .filter(keepTypes(NodeType.Number))
+                        .map(c => c.value),
+                );
+            case 'steps': {
+                const params = node.children.filter(keepTypes(NodeType.Number, NodeType.Identifier));
+                params[0] = Number(params[0].value);
+                if (params.length === 2) params[1] = params[1].name;
+                console.log('params', params);
+                // @ts-ignore
+                return new CSSStepsTimingFunction(...params);
+            }
+            case 'frames':
+                return new CSSFramesTimingFunction(Number(node.children[0].value));
         }
     }
 
@@ -482,6 +514,9 @@ export default class AstCssomConverter {
         if (node.name === 'transparent') {
             return new CSSRgbaColor(0, 0, 0, 0);
         }
+        if (this.timingFunctionKeywords.includes(node.name)) {
+            return new CSSTimingFunctionValue(node.name);
+        }
         if (CSSColorValue.x11ColorsMap.hasOwnProperty(node.name)) {
             return CSSHexColor.fromString(CSSColorValue.x11ColorsMap[node.name]);
         }
@@ -491,6 +526,10 @@ export default class AstCssomConverter {
     private convertString(node) {
         return new CSSStringValue(node.value);
     }
+
+    /*private convertTimingFunction(node) {
+        return new CSSTimingFunctionValue(node.value);
+    }*/
 }
 
 class CssomConvertionError extends Error {

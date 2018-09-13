@@ -12,6 +12,8 @@ export const toCamelCase = (property: string): string => {
     return property.replace(/-([a-zA-Z0-9_])/g, (match, letter) => letter.toUpperCase());
 };
 
+export const inRange = (num: number, min: number, max: number): boolean => num >= min && num <= max;
+
 export const restrict = (num: number, min: number, max: number): number => {
     return Math.min(max, Math.max(min, num));
 };
