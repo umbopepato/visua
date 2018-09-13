@@ -32,6 +32,7 @@ import {
     CSSStepsTimingFunction,
     CSSTimingFunctionValue,
 } from './css-timing-function-value';
+import {visua} from '../visua';
 
 enum NodeType {
     AnPlusB = 'AnPlusB',
@@ -120,17 +121,16 @@ export default class AstCssomConverter {
         'step-end',
     ];
     private styleMap: StyleMap = new StyleMap();
-    private secondaryStyleMaps: StyleMap[] = [];
 
     constructor(private ast, private identityDir = '') {
     };
 
-    getStyleMap() {
+    async getStyleMap() {
         this.validateAndExpandVariables();
         if (this.ast.type !== NodeType.StyleSheet) {
             throw new CssomConvertionError(`Couldn't recognize identity css file structure`);
         }
-        this.processStyleSheet(this.ast);
+        await this.processStyleSheet(this.ast);
         return this.styleMap;
     }
 
@@ -199,27 +199,25 @@ export default class AstCssomConverter {
         }
     }
 
-    private processStyleSheet(node) {
+    private async processStyleSheet(node) {
         if (!node.children || !node.children.length) {
             logger.warn('Empty stylesheet found');
             return;
         }
-        node.children.forEach(c => {
+        await Promise.all(node.children.map(c => {
             switch (c.type) {
                 case NodeType.Atrule:
-                    this.processAtRule(c);
-                    break;
+                    return this.processAtRule(c);
                 case NodeType.Rule:
                     this.processRule(c);
                     break;
                 default:
                     throw new CssomConvertionError(`Unexpected node ${c.type}`);
             }
-        });
-        this.joinStyleMaps();
+        }));
     }
 
-    private processAtRule(node) {
+    private async processAtRule(node) {
         if (node.name !== 'import') {
             warnAt(`Unexpected at-rule of type @${node.name}. Visua currently only supports @import at-rules`, node.loc);
             return;
@@ -233,12 +231,8 @@ export default class AstCssomConverter {
         }
         url = removeQuotes(url);
         let path = fsPath.normalize(`${this.identityDir}/${url}`);
-        let importedStyleSheet = fs.readFileSync(path);
-        let ast = cssTree.parse(importedStyleSheet, {
-            parseCustomProperty: true,
-        });
-        let styleMap = new AstCssomConverter(ast, fsPath.dirname(path)).getStyleMap();
-        this.secondaryStyleMaps.push(styleMap);
+        let styleMap = await visua(path);
+        this.importSecondaryStyleMap(styleMap);
     }
 
     private processRule(node) {
@@ -269,12 +263,10 @@ export default class AstCssomConverter {
         });
     }
 
-    private joinStyleMaps() {
-        for (let secondaryStyleMap of this.secondaryStyleMaps) {
-            secondaryStyleMap.forEach((property, value) => {
-                this.styleMap.set(property, value);
-            });
-        }
+    private importSecondaryStyleMap(styleMap: StyleMap) {
+        styleMap.forEach((property, value) => {
+            this.styleMap.set(property, value);
+        });
     }
 
     private convertAstValue(node) {
@@ -446,7 +438,6 @@ export default class AstCssomConverter {
                 const params = node.children.filter(keepTypes(NodeType.Number, NodeType.Identifier));
                 params[0] = Number(params[0].value);
                 if (params.length === 2) params[1] = params[1].name;
-                console.log('params', params);
                 // @ts-ignore
                 return new CSSStepsTimingFunction(...params);
             }

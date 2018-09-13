@@ -30,7 +30,7 @@ export * from './cssom/dom-matrix';
  * @returns The generated StyleMap
  */
 export const visua = (path: string): Promise<StyleMap> => {
-    return new Promise<StyleMap>((resolve, reject) => {
+    return new Promise<StyleMap>(async (resolve, reject) => {
         try {
             const ast = cssTree.parse(fs.readFileSync(path, {encoding: 'UTF-8'}), {
                 parseCustomProperty: true,
@@ -39,7 +39,7 @@ export const visua = (path: string): Promise<StyleMap> => {
                 filename: path,
             });
             //console.log(JSON.stringify(cssTree.toPlainObject(ast), null, 4));
-            resolve(new AstCssomConverter(ast, fsPath.dirname(path)).getStyleMap());
+            resolve(await new AstCssomConverter(ast, fsPath.dirname(path)).getStyleMap());
         } catch (e) {
             reject(e);
         }

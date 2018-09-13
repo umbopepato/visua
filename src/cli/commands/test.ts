@@ -6,6 +6,6 @@ export const test = async () => {
         let styleMap = await loadStyles();
         styleMap.print();
     } catch (e) {
-        logger.error(e);
+        logger.error(e.formattedMessage || e);
     }
 };
