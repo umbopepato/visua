@@ -78,6 +78,11 @@ enum NodeType {
 
 }
 
+export type AstCssomConverterOptions = {
+    strict: boolean,
+    identityDir: string,
+}
+
 export default class AstCssomConverter {
 
     private variables: {};
@@ -121,8 +126,12 @@ export default class AstCssomConverter {
         'step-end',
     ];
     private styleMap: StyleMap = new StyleMap();
+    private readonly identityDir: string = '';
+    private readonly strict: boolean = false;
 
-    constructor(private ast, private identityDir = '') {
+    constructor(private ast, options: AstCssomConverterOptions) {
+        if (options.identityDir) this.identityDir = options.identityDir;
+        if (options.strict) this.strict = options.strict;
     };
 
     async getStyleMap() {
@@ -231,7 +240,10 @@ export default class AstCssomConverter {
         }
         url = removeQuotes(url);
         let path = fsPath.normalize(`${this.identityDir}/${url}`);
-        let styleMap = await visua(path);
+        let styleMap = await visua({
+            path: path,
+            strict: this.strict
+        });
         this.importSecondaryStyleMap(styleMap);
     }
 
@@ -256,9 +268,14 @@ export default class AstCssomConverter {
             if (declaration.type !== NodeType.Declaration) {
                 throw new CssomConvertionError(`Unexpected node ${node.type}`, node.loc);
             }
-            let value = this.convertAstValue(declaration.value);
-            if (value != null) {
-                this.styleMap.set(removeLeadingDashes(declaration.property), value);
+            try {
+                let value = this.convertAstValue(declaration.value);
+                if (value != null) {
+                    this.styleMap.set(removeLeadingDashes(declaration.property), value);
+                }
+            } catch (e) {
+                if (this.strict) throw e;
+                else logger.warn(e.formattedMessage || e);
             }
         });
     }

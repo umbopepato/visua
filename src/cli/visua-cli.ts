@@ -6,7 +6,8 @@ import {test} from './commands/test';
 
 program
     .version('0.0.1')
-    .alias('-v');
+    .option('-s, --strict', 'exit on parse errors', false)
+    .option('-p, --path <mainFile>', 'path to the main identity file');
 
 program.command('init')
     .alias('initialize')
