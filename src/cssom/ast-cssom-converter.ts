@@ -16,7 +16,7 @@ import {CSSUrlValue} from './css-url-value';
 import {CSSTransformValue} from './css-transform-value';
 import {DOMMatrix} from './dom-matrix';
 import {CSSTranslate} from './css-translate';
-import {CSS} from './css';
+import {CSS, CSSUnit} from './css';
 import {CSSScale} from './css-scale';
 import {CSSRotate} from './css-rotate';
 import {CSSSkew} from './css-skew';
@@ -27,6 +27,50 @@ import * as fsPath from 'path';
 import {removeLeadingDashes, removeQuotes, warnAt} from '../util';
 import {CSSStringValue} from './css-string-value';
 import {logger} from '../logger';
+
+enum NodeType {
+    AnPlusB = 'AnPlusB',
+    Atrule = 'Atrule',
+    AtrulePrelude = 'AtrulePrelude',
+    AttributeSelector = 'AttributeSelector',
+    Block = 'Block',
+    Brackets = 'Brackets',
+    CDC = 'CDC',
+    CDO = 'CDO',
+    ClassSelector = 'ClassSelector',
+    Combinator = 'Combinator',
+    Comment = 'Comment',
+    Declaration = 'Declaration',
+    DeclarationList = 'DeclarationList',
+    Dimension = 'Dimension',
+    Function = 'Function',
+    HexColor = 'HexColor',
+    IdSelector = 'IdSelector',
+    Identifier = 'Identifier',
+    MediaFeature = 'MediaFeature',
+    MediaQuery = 'MediaQuery',
+    MediaQueryList = 'MediaQueryList',
+    Nth = 'Nth',
+    Number = 'Number',
+    Operator = 'Operator',
+    Parentheses = 'Parentheses',
+    Percentage = 'Percentage',
+    PseudoClassSelector = 'PseudoClassSelector',
+    PseudoElementSelector = 'PseudoElementSelector',
+    Ratio = 'Ratio',
+    Raw = 'Raw',
+    Rule = 'Rule',
+    Selector = 'Selector',
+    SelectorList = 'SelectorList',
+    String = 'String',
+    StyleSheet = 'StyleSheet',
+    TypeSelector = 'TypeSelector',
+    UnicodeRange = 'UnicodeRange',
+    Url = 'Url',
+    Value = 'Value',
+    WhiteSpace = 'WhiteSpace',
+
+}
 
 export default class AstCssomConverter {
 
@@ -69,7 +113,7 @@ export default class AstCssomConverter {
 
     getStyleMap() {
         this.validateAndExpandVariables();
-        if (this.ast.type !== 'StyleSheet') {
+        if (this.ast.type !== NodeType.StyleSheet) {
             throw new CssomConvertionError(`Couldn't recognize identity css file structure`);
         }
         this.processStyleSheet(this.ast);
@@ -90,7 +134,7 @@ export default class AstCssomConverter {
     private expandVariableReferencesR(node) {
         if (node.children) {
             for (let i = 0; i < node.children.length; i++) {
-                if (node.children[i].type === 'Function' && node.children[i].name === 'var') {
+                if (node.children[i].type === NodeType.Function && node.children[i].name === 'var') {
                     node.children[i] = this.variables[node.children[i].children[0].name].value;
                 }
                 if (node.children[i].children || node.children[i].value) {
@@ -106,7 +150,7 @@ export default class AstCssomConverter {
     private generateVariablesMap() {
         let variables = {};
         cssTree.walk(this.ast, node => {
-            if (node.type === 'Declaration') {
+            if (node.type === NodeType.Declaration) {
                 if (node.property != null && node.property.startsWith('--')) {
                     let value = cssTree.toPlainObject(node.value).children[0];
                     if (!value) throw new CssomConvertionError(`Variable ${node.property} is empty`, value.loc);
@@ -115,7 +159,7 @@ export default class AstCssomConverter {
                         internalReferences: [],
                     };
                     cssTree.walk(node, innerNode => {
-                        if (innerNode.type === 'Identifier' && innerNode.name.startsWith('--')) {
+                        if (innerNode.type === NodeType.Identifier && innerNode.name.startsWith('--')) {
                             variables[node.property].internalReferences.push(innerNode.name);
                         }
                     });
@@ -148,10 +192,10 @@ export default class AstCssomConverter {
         }
         node.children.forEach(c => {
             switch (c.type) {
-                case 'Atrule':
+                case NodeType.Atrule:
                     this.processAtRule(c);
                     break;
-                case 'Rule':
+                case NodeType.Rule:
                     this.processRule(c);
                     break;
                 default:
@@ -163,7 +207,7 @@ export default class AstCssomConverter {
 
     private processAtRule(node) {
         if (node.name !== 'import') {
-            warnAt(`Unexpected at-rule of type ${node.name}. Visua currently only supports \`@import\` at-rules`, node.loc);
+            warnAt(`Unexpected at-rule of type @${node.name}. Visua currently only supports @import at-rules`, node.loc);
             return;
         }
         if (node.prelude == null || node.prelude.children == null || !node.prelude.children.length) {
@@ -185,7 +229,7 @@ export default class AstCssomConverter {
 
     private processRule(node) {
         if (node.prelude == null ||
-            node.prelude.type !== 'SelectorList' ||
+            node.prelude.type !== NodeType.SelectorList ||
             node.prelude.children == null ||
             !node.prelude.children.length ||
             node.prelude.children[0].children == null ||
@@ -194,14 +238,14 @@ export default class AstCssomConverter {
                 node.loc);
         }
         let mainSelector = node.prelude.children[0].children[0];
-        if (mainSelector.type !== 'PseudoClassSelector' || mainSelector.name !== 'root') {
+        if (mainSelector.type !== NodeType.PseudoClassSelector || mainSelector.name !== 'root') {
             throw new CssomConvertionError(`Unexpected selector ${mainSelector.name}. Main selector should be :root`, mainSelector.loc);
         }
         if (node.block == null || node.block.children == null || !node.block.children.length) {
             logger.warn(`Empty identity file`);
         }
         node.block.children.forEach(declaration => {
-            if (declaration.type !== 'Declaration') {
+            if (declaration.type !== NodeType.Declaration) {
                 throw new CssomConvertionError(`Unexpected node ${node.type}`, node.loc);
             }
             let value = this.convertAstValue(declaration.value);
@@ -221,23 +265,23 @@ export default class AstCssomConverter {
 
     private convertAstValue(node) {
         switch (node.type) {
-            case 'Value':
+            case NodeType.Value:
                 return this.convertDeclaration(node);
-            case 'Dimension':
+            case NodeType.Dimension:
                 return this.convertDimension(node);
-            case 'String':
+            case NodeType.String:
                 return this.convertString(node);
-            case 'Number':
+            case NodeType.Number:
                 return this.convertNumber(node);
-            case 'Function':
+            case NodeType.Function:
                 return this.convertFunction(node);
-            case 'Url':
+            case NodeType.Url:
                 return this.convertUrl(node);
-            case 'HexColor':
+            case NodeType.HexColor:
                 return this.convertHex(node);
-            case 'Parentheses':
+            case NodeType.Parentheses:
                 return this.convertCalc(node.children);
-            case 'Identifier':
+            case NodeType.Identifier:
                 return this.convertIdentifier(node);
         }
     }
@@ -250,7 +294,7 @@ export default class AstCssomConverter {
                 return this.convertTransform(node);
             }
             if (node.children.some(c => this.positionKeywords.includes(c.name)) ||
-                node.children.every(c => c.type === 'Percentage' || c.type === 'Dimension')) {
+                node.children.every(c => c.type === NodeType.Percentage || c.type === NodeType.Dimension)) {
                 return this.convertPosition(node);
             }
         }
@@ -263,7 +307,7 @@ export default class AstCssomConverter {
     private convertPosition(node) {
         // @ts-ignore
         return new CSSPositionValue(...node.children
-            .filter(c => c.type !== 'WhiteSpace')
+            .filter(removeWhiteSpaces())
             .map(this.convertAstValue));
     }
 
@@ -272,7 +316,7 @@ export default class AstCssomConverter {
     }
 
     private convertNumber(node) {
-        return new CSSUnitValue(node.value, 'number');
+        return new CSSUnitValue(node.value, CSSUnit.number);
     }
 
     private convertFunction(node) {
@@ -288,7 +332,7 @@ export default class AstCssomConverter {
                 // @ts-ignore
                 return new CSSRgbaColor(
                     ...node.children
-                        .filter(c => c.type === 'Number')
+                        .filter(keepTypes(NodeType.Number))
                         .map(c => Number(c.value)),
                 );
             case 'hsla':
@@ -296,14 +340,14 @@ export default class AstCssomConverter {
                 // @ts-ignore
                 return new CSSHslaColor(
                     ...node.children
-                        .filter(c => c.type === 'Number' || c.type === 'Percentage' || c.type === 'Dimension')
+                        .filter(keepTypes(NodeType.Number, NodeType.Percentage, NodeType.Dimension))
                         .map(c => {
                             switch (c.type) {
-                                case 'Number':
+                                case NodeType.Number:
                                     return c.value;
-                                case 'Dimension':
+                                case NodeType.Dimension:
                                     return this.convertDimension(c);
-                                case 'Percentage':
+                                case NodeType.Percentage:
                                     return this.convertPercentage(c);
                             }
                         }),
@@ -313,7 +357,7 @@ export default class AstCssomConverter {
             case 'matrix3d':
                 return new DOMMatrix(
                     node.children
-                        .filter(c => c.type === 'Number')
+                        .filter(keepTypes(NodeType.Number))
                         .map(c => c.value),
                 );
             case 'translate':
@@ -321,7 +365,7 @@ export default class AstCssomConverter {
                 // @ts-ignore
                 return new CSSTranslate(
                     ...node.children
-                        .filter(c => c.type === 'Dimension')
+                        .filter(keepTypes(NodeType.Dimension))
                         .map(this.convertAstValue),
                 );
             case 'translateX':
@@ -338,7 +382,7 @@ export default class AstCssomConverter {
                 // @ts-ignore
                 return new CSSScale(
                     ...node.children
-                        .filter(c => c.type === 'Number')
+                        .filter(keepTypes(NodeType.Number))
                         .map(this.convertAstValue),
                 );
             case 'scaleX':
@@ -357,7 +401,7 @@ export default class AstCssomConverter {
                 return new CSSRotate(this.convertAstValue(node.children[0]), 0, 0, 1);
             case 'rotate3d':
                 const params = node.children
-                    .filter(c => c.type === 'Number' || c.type === 'Dimension')
+                    .filter(keepTypes(NodeType.Number, NodeType.Dimension))
                     .map(this.convertAstValue);
                 return new CSSRotate(params[3], params[0], params[1], params[2]);
             case 'skew':
@@ -367,7 +411,7 @@ export default class AstCssomConverter {
                 // @ts-ignore
                 return new CSSSkew(
                     ...node.children
-                        .filter(c => c.type === 'Dimension' || c.type === 'Number')
+                        .filter(keepTypes(NodeType.Dimension, NodeType.Number))
                         .map(this.convertAstValue),
                 );
             case 'skewX':
@@ -392,7 +436,7 @@ export default class AstCssomConverter {
     }
 
     private convertCalc(components) {
-        const children = components.filter(c => c.type !== 'WhiteSpace');
+        const children = components.filter(removeWhiteSpaces());
         if (children.length < 3) throw new CssomConvertionError(`Failed to convert ${components} to CSSMathValue: Too few arguments`,
             components[0].loc);
         let top = children.length - 2;
@@ -425,14 +469,12 @@ export default class AstCssomConverter {
     }
 
     private convertMin(node) {
-        return new CSSMathMin(...node.children
-            .filter(c => c.type !== 'Whitespace')
+        return new CSSMathMin(...node.children.filter(removeWhiteSpaces())
             .map(this.convertAstValue));
     }
 
     private convertMax(node) {
-        return new CSSMathMax(...node.children
-            .filter(c => c.type !== 'Whitespace')
+        return new CSSMathMax(...node.children.filter(removeWhiteSpaces())
             .map(this.convertAstValue));
     }
 
@@ -460,3 +502,15 @@ class CssomConvertionError extends Error {
     }
 
 }
+
+const removeWhiteSpaces = () => {
+    return node => {
+        return node.type !== NodeType.WhiteSpace;
+    };
+};
+
+const keepTypes = (...types: NodeType[]) => {
+    return node => {
+        return types.some(t => node.type === t);
+    };
+};

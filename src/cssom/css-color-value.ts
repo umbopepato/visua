@@ -1,4 +1,4 @@
-import {CSS} from './css';
+import {CSS, CSSBaseType, CSSUnit} from './css';
 import {CSSUnitValue} from './css-unit-value';
 import {CSSStyleValue} from './css-style-value';
 import {map, mod, restrict} from '../util';
@@ -312,7 +312,7 @@ export class CSSRgbaColor extends CSSColorValue {
         super();
         [r, g, b, a].forEach(c => {
             if (c instanceof CSSUnitValue) {
-                if (CSS.getUnitData(c.unit).baseType !== 'percent') {
+                if (c.unit.baseType !== CSSBaseType.percent) {
                     throw new TypeError(`Failed to construct 'CSSRgbaColor': Arguments r, g, b and a must be numbers or percentages`);
                 }
             }
@@ -342,8 +342,8 @@ export class CSSRgbaColor extends CSSColorValue {
                 const hslNumeric = CSSColorValue.rgbToHslNumeric(this.r, this.g, this.b);
                 return new CSSHslaColor(
                     hslNumeric[0] * 360,
-                    new CSSUnitValue(hslNumeric[1] * 100, 'percent'),
-                    new CSSUnitValue(hslNumeric[2] * 100, 'percent'),
+                    new CSSUnitValue(hslNumeric[1] * 100, CSSUnit.percent),
+                    new CSSUnitValue(hslNumeric[2] * 100, CSSUnit.percent),
                     this.a,
                 );
         }
@@ -371,12 +371,12 @@ export class CSSHslaColor extends CSSColorValue {
     constructor(h: number | CSSUnitValue, s: CSSUnitValue, l: CSSUnitValue, a?: number | CSSUnitValue) {
         super();
         if (h instanceof CSSUnitValue) {
-            if (CSS.getUnitData(h.unit).baseType !== 'angle') {
+            if (h.unit.baseType !== CSSBaseType.angle) {
                 throw new TypeError(`Failed to construct 'CSSHslaColor': Argument h must be a number or an angle`);
             }
         }
         [s, l].forEach(c => {
-            if (c.unit !== 'percent') {
+            if (c.unit.name !== CSSUnit.percent) {
                 throw new TypeError(`Failed to construct 'CSSHslaColor': Argument ${c} is not a percentage`);
             }
         });
@@ -388,11 +388,11 @@ export class CSSHslaColor extends CSSColorValue {
 
     private static resolveHue(hue: number | CSSUnitValue): CSSUnitValue {
         if (hue instanceof CSSUnitValue) {
-            let hueDeg = hue.unit === 'deg' ? hue : hue.to('deg');
+            let hueDeg = hue.unit.name === CSSUnit.deg ? hue : hue.to(CSSUnit.deg);
             hueDeg.value = mod(Math.round(hueDeg.value), 360);
             return hueDeg;
         }
-        return new CSSUnitValue(mod(Math.round(hue), 360), 'deg');
+        return new CSSUnitValue(mod(Math.round(hue), 360), CSSUnit.deg);
     }
 
     private static resolveSlComponent(comp: CSSUnitValue): CSSUnitValue {

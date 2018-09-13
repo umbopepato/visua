@@ -61,7 +61,7 @@ export class StyleMap {
      */
     set(property: string, value: CSSStyleValue) {
         if (this.map.hasOwnProperty(property)) {
-            logger.warn(`Warn: variable ${property} has been defined more times.`);
+            logger.warn(`Variable ${property} has been defined more times`);
         }
         this.map[property] = value;
     }
@@ -83,7 +83,7 @@ export class StyleMap {
         });
         table.push(...Object
             .entries(this.map)
-            .map(e => [e[0], e[1].constructor.name, e[1]] as string[]));
+            .map(e => [`--${e[0]}`, e[1].constructor.name, e[1]] as string[]));
         console.log('StyleMap:');
         console.log(table.toString());
     }

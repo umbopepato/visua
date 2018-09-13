@@ -1,7 +1,7 @@
 import {CSSTransformComponent} from './css-transform-component';
 import {CSSNumberish, CSSNumericValue} from './css-numeric-value';
 import {DOMMatrix} from './dom-matrix';
-import {CSS} from './css';
+import {CSS, CSSBaseType} from './css';
 import {CSSUnitValue} from './css-unit-value';
 
 export class CSSScale implements CSSTransformComponent {
@@ -26,7 +26,7 @@ export class CSSScale implements CSSTransformComponent {
         this.y = CSSNumericValue.rectifyNumberishValue(y);
         if (z) this.z = CSSNumericValue.rectifyNumberishValue(z);
         else this.z = CSS.number(1);
-        if (![this.x, this.y, this.z].every(v => CSS.getUnitData((v as CSSUnitValue).unit).baseType === 'number')) {
+        if (![this.x, this.y, this.z].every(v => (v as CSSUnitValue).unit.baseType === CSSBaseType.number)) {
             throw new TypeError(`Failed to construct CSSRotate: x, y, z must be of type <number>`);
         }
     }
