@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import {StyleMap} from './cssom/style-map';
 import {logger} from './logger';
 
+export * from './plugin';
 export * from './cssom/style-map';
 export * from './cssom/css';
 export * from './cssom/css-color-value';

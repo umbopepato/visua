@@ -11,7 +11,6 @@ program
 
 program.command('init')
     .alias('initialize')
-    .option('prova')
     .action(init);
 
 program.command('test')
@@ -19,9 +18,14 @@ program.command('test')
     .action(test);
 
 program.command('run')
-    .allowUnknownOption(true)
+    .allowUnknownOption()
     .action(() => {
-        run(program.rawArgs.slice(3));
+        let rawArgs = program.rawArgs;
+        let globalOptions = {
+            path: program.path,
+            strict: program.strict,
+        };
+        run(globalOptions, rawArgs.slice(rawArgs.indexOf('run') + 1));
     });
 
 program.parse(process.argv);
