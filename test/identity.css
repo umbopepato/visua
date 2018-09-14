@@ -10,4 +10,7 @@
     --prova6: ease-in;
     --prova7: ease-in-out;
     --prova8: prova ciao;
+    --prova9: linear-gradient(#00FF00, #FF0000);
+    --prova10: linear-gradient(to bottom, #00FF00 100px, #FF0000 80%);
+    --prova11: linear-gradient(to top right, #00FF00 100px, #FF0000 80%);
 }

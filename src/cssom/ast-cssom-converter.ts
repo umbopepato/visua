@@ -33,6 +33,7 @@ import {
     CSSTimingFunctionValue,
 } from './css-timing-function-value';
 import {visua} from '../visua';
+import {CSSGradientStep, CSSLinearGradient} from './css-gradient-value';
 
 enum NodeType {
     AnPlusB = 'AnPlusB',
@@ -242,7 +243,7 @@ export default class AstCssomConverter {
         let path = fsPath.normalize(`${this.identityDir}/${url}`);
         let styleMap = await visua({
             path: path,
-            strict: this.strict
+            strict: this.strict,
         });
         this.importSecondaryStyleMap(styleMap);
     }
@@ -306,6 +307,8 @@ export default class AstCssomConverter {
                 return this.convertCalc(node.children);
             case NodeType.Identifier:
                 return this.convertIdentifier(node);
+            case NodeType.Percentage:
+                return this.convertPercentage(node);
         }
     }
 
@@ -464,6 +467,9 @@ export default class AstCssomConverter {
             }
             case 'frames':
                 return new CSSFramesTimingFunction(Number(node.children[0].value));
+            case 'linear-gradient': {
+                return this.convertLinearGradient(node);
+            }
         }
     }
 
@@ -539,9 +545,38 @@ export default class AstCssomConverter {
         return new CSSStringValue(node.value);
     }
 
-    /*private convertTimingFunction(node) {
-        return new CSSTimingFunctionValue(node.value);
-    }*/
+    private convertLinearGradient(node) {
+        let groups = split(node.children.filter(removeWhiteSpaces()), NodeType.Operator);
+        let direction: CSSUnitValue | CSSKeywordsValue;
+        let steps: CSSGradientStep[] = [];
+        for (let i = 0; i < groups.length; i++) {
+            let group = groups[i];
+            if (group.length > 0) {
+                if (i == 0 && group[0].type !== NodeType.Function && group[0].type !== NodeType.HexColor) {
+                    if (group[0].type === NodeType.Dimension) {
+                        direction = this.convertAstValue(group[0]);
+                    } else if (group[0].name === 'to') {
+                        if (group.length > 1 && group[1].type === NodeType.Identifier) {
+                            direction = new CSSKeywordsValue([this.convertAstValue(group[1])]);
+                            if (group.length > 2 && group[2].type === NodeType.Identifier) {
+                                direction.keywords.push(this.convertAstValue(group[2]));
+                                if (group.length > 3 && group[3].type === NodeType.Identifier) {
+                                    direction.keywords.push(this.convertAstValue(group[3]));
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if (group.length === 1) {
+                        steps.push(new CSSGradientStep(this.convertAstValue(group[0])));
+                    } else {
+                        steps.push(new CSSGradientStep(this.convertAstValue(group[0]), this.convertAstValue(group[1])));
+                    }
+                }
+            }
+        }
+        return new CSSLinearGradient(steps, direction);
+    }
 }
 
 class CssomConvertionError extends Error {
@@ -564,4 +599,16 @@ const keepTypes = (...types: NodeType[]) => {
     return node => {
         return types.some(t => node.type === t);
     };
+};
+
+const split = (nodes, splitter: NodeType) => {
+    let result = [[]];
+    nodes.forEach(n => {
+        if (n.type === splitter) {
+            result.push([]);
+        } else {
+            result[result.length - 1].push(n);
+        }
+    });
+    return result;
 };
