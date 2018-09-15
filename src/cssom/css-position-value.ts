@@ -1,7 +1,8 @@
 import {CSSNumericValue} from './css-numeric-value';
 import {CSSStyleValue} from './css-style-value';
-import {CSS} from './css';
+import {CSS, CSSBaseType, CSSUnit} from './css';
 import {CSSKeywordValue} from './css-keyword-value';
+import {CSSUnitValue} from './css-unit-value';
 
 enum Bias {
     AUTO,
@@ -104,6 +105,42 @@ export class CSSPositionValue extends CSSStyleValue {
         } else {
             throw new TypeError(`Unexpected value ${value}`);
         }
+    }
+
+    private static serializeX(percent: CSSNumericValue): string | CSSNumericValue {
+        if (percent instanceof CSSUnitValue && percent.unit.name === CSSUnit.percent) {
+            switch (percent.value) {
+                case 0: return 'left';
+                case 50: return 'center';
+                case 100: return 'right';
+            }
+        }
+        return percent;
+    }
+
+    private static serializeY(percent: CSSNumericValue): string | CSSNumericValue {
+        if (percent instanceof CSSUnitValue && percent.unit.name === CSSUnit.percent) {
+            switch (percent.value) {
+                case 0: return 'top';
+                case 50: return 'center';
+                case 100: return 'bottom';
+            }
+        }
+        return percent;
+    }
+
+    public get isCenter(): boolean {
+        let center = CSS.percent(50);
+        return this.x.equals(center) && this.y.equals(center);
+    }
+
+    toString() {
+        if (this.isCenter) return 'center';
+        let components = [
+            CSSPositionValue.serializeX(this.x),
+            CSSPositionValue.serializeY(this.y),
+        ];
+        return `${components.join(' ')}`;
     }
 
 }

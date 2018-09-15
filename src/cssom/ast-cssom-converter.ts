@@ -33,7 +33,7 @@ import {
     CSSTimingFunctionValue,
 } from './css-timing-function-value';
 import {visua} from '../visua';
-import {CSSGradientStep, CSSLinearGradient} from './css-gradient-value';
+import {CSSGradientStep, CSSLinearGradient, CSSRadialGradient} from './css-gradient-value';
 
 enum NodeType {
     AnPlusB = 'AnPlusB',
@@ -335,10 +335,9 @@ export default class AstCssomConverter {
     }
 
     private convertPosition(node) {
-        // @ts-ignore
         return new CSSPositionValue(...node.children
             .filter(removeWhiteSpaces())
-            .map(this.convertAstValue));
+            .map(c => this.convertAstValue(c)));
     }
 
     private convertDimension(node) {
@@ -467,9 +466,10 @@ export default class AstCssomConverter {
             }
             case 'frames':
                 return new CSSFramesTimingFunction(Number(node.children[0].value));
-            case 'linear-gradient': {
+            case 'linear-gradient':
                 return this.convertLinearGradient(node);
-            }
+            case 'radial-gradient':
+                return this.convertRadialGradient(node);
         }
     }
 
@@ -577,6 +577,50 @@ export default class AstCssomConverter {
         }
         return new CSSLinearGradient(steps, direction);
     }
+
+    private convertRadialGradient(node) {
+        let groups = split(node.children.filter(removeWhiteSpaces()), NodeType.Operator);
+        let steps: CSSGradientStep[] = [];
+        let size: CSSUnitValue | CSSKeywordValue | CSSUnitValue[];
+        let position: CSSPositionValue;
+        let shape: CSSKeywordValue;
+        for (let i = 0; i < groups.length; i++) {
+            let group = groups[i];
+            if (group.length > 0) {
+                if (i == 0 && group[0].type !== NodeType.Function && group[0].type !== NodeType.HexColor) {
+                    let subGroups = splitf(group, n => n.type === NodeType.Identifier && n.name === 'at');
+                    for (let j = 0; j < subGroups[0].length; j++) {
+                        let dimenNode = subGroups[0][j];
+                        if (dimenNode.type === NodeType.Identifier && dimenNode.name === 'circle' || dimenNode.name === 'ellipse') {
+                            shape = new CSSKeywordValue(dimenNode.name);
+                        } else {
+                            if (dimenNode.type === NodeType.Dimension || dimenNode.type === NodeType.Percentage) {
+                                if (size instanceof CSSUnitValue) {
+                                    size = [size, this.convertAstValue(dimenNode)];
+                                } else {
+                                    size = this.convertAstValue(dimenNode);
+                                }
+                            } else {
+                                size = new CSSKeywordValue(dimenNode.name);
+                            }
+                        }
+                    }
+                    position = new CSSPositionValue(...subGroups[1].map(c => this.convertAstValue(c)));
+                } else {
+                    if (group.length === 1) {
+                        steps.push(new CSSGradientStep(this.convertAstValue(group[0])));
+                    } else {
+                        steps.push(new CSSGradientStep(this.convertAstValue(group[0]), this.convertAstValue(group[1])));
+                    }
+                }
+            }
+        }
+        return new CSSRadialGradient(steps, {
+            size: size,
+            position: position,
+            shape: shape,
+        });
+    }
 }
 
 class CssomConvertionError extends Error {
@@ -605,6 +649,18 @@ const split = (nodes, splitter: NodeType) => {
     let result = [[]];
     nodes.forEach(n => {
         if (n.type === splitter) {
+            result.push([]);
+        } else {
+            result[result.length - 1].push(n);
+        }
+    });
+    return result;
+};
+
+const splitf = (nodes, splitter: (node: any) => boolean) => {
+    let result = [[]];
+    nodes.forEach(n => {
+        if (splitter(n)) {
             result.push([]);
         } else {
             result[result.length - 1].push(n);

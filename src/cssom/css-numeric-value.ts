@@ -30,11 +30,10 @@ export class CSSNumericValue extends CSSStyleValue {
         } else {
             rectifiedValues.unshift(this);
         }
-        if (rectifiedValues.every(isUnitValue)) {
-            let unitValues = rectifiedValues as CSSUnitValue[];
-            if (unitValues.every(haveSameUnit)) {
+        if (allUnitValues(rectifiedValues)) {
+            if (rectifiedValues.every(haveSameUnit)) {
                 return new CSSUnitValue(
-                    unitValues.map((item) => item.value)
+                    rectifiedValues.map((item) => item.value)
                         .reduce((acc, val) => acc + val),
                     // @ts-ignore
                     this.unit.name,
@@ -511,3 +510,7 @@ export class CSSMathSum extends CSSMathValue {
 const haveSameUnit = (val, i, arr) => val.unit.name === arr[0].unit.name;
 
 const isUnitValue = i => i instanceof CSSUnitValue;
+
+const allUnitValues = (values: (CSSUnitValue | CSSNumericValue)[]): values is CSSUnitValue[] => {
+    return values.every(isUnitValue);
+};
