@@ -59,6 +59,14 @@ export class CSSLinearGradient extends CSSGradientValue {
 
 }
 
+export class CSSRepeatingLinearGradient extends CSSGradientValue {
+
+    constructor(public gradient: CSSLinearGradient) {
+        super();
+    };
+
+}
+
 export interface CSSRadialGradientDimensions {
     shape?: CSSKeywordValue,
     size?: CSSUnitValue | CSSKeywordValue | CSSUnitValue[],
@@ -107,5 +115,13 @@ export class CSSRadialGradient extends CSSGradientValue {
         if (!this.hasDefaultPosition()) dimensions.push(`at ${this.position}`);
         return `radial-gradient(${dimensions.length > 0 ? `${dimensions.join(' ')}, ` : ''}${this.steps.map(s => s.toString()).join(', ')})`;
     }
+
+}
+
+export class CSSRepeatingRadialGradient extends CSSGradientValue {
+
+    constructor(public gradient: CSSRadialGradient) {
+        super();
+    };
 
 }

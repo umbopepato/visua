@@ -11,7 +11,7 @@ export class CSSStringValue extends CSSStyleValue {
     }
 
     toString() {
-        return this.value;
+        return `'${this.value}'`;
     }
 
 }

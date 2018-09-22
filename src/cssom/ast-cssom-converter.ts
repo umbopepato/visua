@@ -33,7 +33,15 @@ import {
     CSSTimingFunctionValue,
 } from './css-timing-function-value';
 import {visua} from '../visua';
-import {CSSGradientStep, CSSLinearGradient, CSSRadialGradient} from './css-gradient-value';
+import {
+    CSSGradientStep,
+    CSSLinearGradient,
+    CSSRadialGradient,
+    CSSRepeatingLinearGradient,
+    CSSRepeatingRadialGradient,
+} from './css-gradient-value';
+import {CSSFontFamilyValue} from './css-font-family-value';
+import {CSSFontComponents, CSSFontValue, CSSSystemFontValue} from './css-font-value';
 
 enum NodeType {
     AnPlusB = 'AnPlusB',
@@ -327,6 +335,14 @@ export default class AstCssomConverter {
             if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier)) {
                 return new CSSKeywordsValue(childrenNoWhitespaces.map(c => this.convertAstValue(c)));
             }
+            let lastChild = childrenNoWhitespaces[childrenNoWhitespaces.length - 1];
+            if (lastChild.type === NodeType.Identifier && CSSFontFamilyValue.fallbackFonts.includes(lastChild.name)) {
+                if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier || c.type === NodeType.String)) {
+                    return this.convertFontFamily(node);
+                } else {
+                    return this.convertFont(node);
+                }
+            }
         }
     }
 
@@ -470,6 +486,10 @@ export default class AstCssomConverter {
                 return this.convertLinearGradient(node);
             case 'radial-gradient':
                 return this.convertRadialGradient(node);
+            case 'repeating-linear-gradient':
+                return new CSSRepeatingLinearGradient(this.convertLinearGradient(node));
+            case 'repeating-radial-gradient':
+                return new CSSRepeatingRadialGradient(this.convertRadialGradient(node));
         }
     }
 
@@ -537,6 +557,9 @@ export default class AstCssomConverter {
         }
         if (CSSColorValue.x11ColorsMap.hasOwnProperty(node.name)) {
             return CSSHexColor.fromString(CSSColorValue.x11ColorsMap[node.name]);
+        }
+        if (CSSSystemFontValue.systemFonts.includes(node.name)) {
+            return new CSSSystemFontValue(node.name);
         }
         return new CSSKeywordValue(node.name);
     }
@@ -620,6 +643,66 @@ export default class AstCssomConverter {
             position: position,
             shape: shape,
         });
+    }
+
+    private convertFontFamily(node) {
+        return new CSSFontFamilyValue(node.children
+            .filter(keepTypes(NodeType.Identifier, NodeType.String))
+            .map(c => this.convertAstValue(c)));
+    }
+
+    private convertFont(node) {
+        let i = 0, beforeFamily: boolean = true;
+        let children = node.children.filter(removeWhiteSpaces());
+        let components: CSSFontComponents = {family: null};
+        while (beforeFamily && i < children.length) {
+            let child = children[i];
+            switch (child.type) {
+                case NodeType.Identifier:
+                    if (CSSFontValue.styleKeywords.includes(child.name)) {
+                        components.style = this.convertAstValue(child);
+                    } else if (child.name === 'oblique') {
+                        let nextChild = children[i + 1];
+                        if (nextChild != null && nextChild.type === NodeType.Dimension) {
+                            components.style = this.convertAstValue(nextChild);
+                            i++; // Skip next child
+                        } else {
+                            components.style = CSS.deg(14);
+                        }
+                    } else if (CSSFontValue.variantKeywords.includes(child.name)) {
+                        components.variant = this.convertAstValue(child);
+                    } else if (CSSFontValue.weightKeywords.includes(child.name)) {
+                        components.weight = this.convertAstValue(child);
+                    } else if (CSSFontValue.stretchKeywords.includes(child.name)) {
+                        components.stretch = this.convertAstValue(child);
+                    }
+                    break;
+                case NodeType.Number:
+                    if (child.value.length === 3) {
+                        components.weight = this.convertAstValue(child);
+                    }
+                    break;
+                case NodeType.Operator:
+                    if (child.value === '/') {
+                        let nextChild = children[i + 1];
+                        if (nextChild != null) {
+                            components.lineHeight = this.convertAstValue(nextChild);
+                            beforeFamily = false;
+                        }
+                    }
+                    break;
+                case NodeType.Dimension:
+                case NodeType.Percentage:
+                    components.size = this.convertAstValue(child);
+                    if (!children.some(c => c.type === NodeType.Operator && c.value === '/')) {
+                        beforeFamily = false;
+                    }
+                    break;
+            }
+            i++;
+        }
+        components.family = this.convertFontFamily({children: children.slice(i)});
+        return new CSSFontValue(components);
     }
 }
 
