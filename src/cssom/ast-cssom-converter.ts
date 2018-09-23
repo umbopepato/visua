@@ -42,7 +42,7 @@ import {
 import {CSSFontFamilyValue} from './css-font-family-value';
 import {CSSFontComponents, CSSFontValue, CSSSystemFontValue} from './css-font-value';
 import {CSSBorderComponents, CSSBorderValue} from './css-border-value';
-import {CSSShadow, CSSShadowComponents, CSSShadowValue} from './css-shadow-value';
+import {CSSShadow, CSSShadowComponents, CSSBoxShadowValue} from './css-box-shadow-value';
 
 enum NodeType {
     AnPlusB = 'AnPlusB',
@@ -335,7 +335,7 @@ export default class AstCssomConverter {
             }
             if (node.children.some(c => c.type === NodeType.Identifier &&
                 c.name === 'inset')) {
-                return this.convertShadow(node);
+                return this.convertBoxShadow(node);
             }
             let childrenNoWhitespaces = node.children.filter(removeWhiteSpaces());
             if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier)) {
@@ -344,7 +344,7 @@ export default class AstCssomConverter {
             if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier ||
                 c.type === NodeType.HexColor || c.type === NodeType.Function ||
                 c.type === NodeType.Dimension || c.type === NodeType.Number)) {
-                return this.convertShadow(node);
+                return this.convertBoxShadow(node);
             }
             if (childrenNoWhitespaces.length < 4 && childrenNoWhitespaces.some(c => c.type === NodeType.Identifier &&
                 CSSBorderValue.lineStyleKeywords.includes(c.name))) {
@@ -741,7 +741,7 @@ export default class AstCssomConverter {
         return new CSSBorderValue(components);
     }
 
-    private convertShadow(node) {
+    private convertBoxShadow(node) {
         // TODO handle 3 children inset shadow conflicting with border
         let children = node.children.filter(keepTypes(NodeType.Number, NodeType.Dimension, NodeType.Function,
             NodeType.HexColor, NodeType.Identifier, NodeType.Operator));
@@ -769,7 +769,7 @@ export default class AstCssomConverter {
             });
             layers.push(new CSSShadow(components));
         });
-        return new CSSShadowValue(layers);
+        return new CSSBoxShadowValue(layers);
     }
 }
 

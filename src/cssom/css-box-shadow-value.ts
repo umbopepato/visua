@@ -44,7 +44,7 @@ export class CSSShadow {
 
 }
 
-export class CSSShadowValue extends CSSStyleValue {
+export class CSSBoxShadowValue extends CSSStyleValue {
 
     constructor(public layers: CSSShadow[]) {
         super();
