@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import * as cssTree from 'css-tree';
 import {StyleMap} from './style-map';
 import {CSSColorValue, CSSHexColor, CSSHslaColor, CSSRgbaColor} from './css-color-value';
@@ -42,6 +41,8 @@ import {
 } from './css-gradient-value';
 import {CSSFontFamilyValue} from './css-font-family-value';
 import {CSSFontComponents, CSSFontValue, CSSSystemFontValue} from './css-font-value';
+import {CSSBorderComponents, CSSBorderValue} from './css-border-value';
+import {CSSShadow, CSSShadowComponents, CSSShadowValue} from './css-shadow-value';
 
 enum NodeType {
     AnPlusB = 'AnPlusB',
@@ -327,13 +328,27 @@ export default class AstCssomConverter {
             if (this.transformKeywords.includes(node.children[0].name)) {
                 return this.convertTransform(node);
             }
-            if (node.children.some(c => this.positionKeywords.includes(c.name)) ||
+            if (node.children.some(c => c.type === NodeType.Identifier &&
+                this.positionKeywords.includes(c.name)) ||
                 node.children.every(c => c.type === NodeType.Percentage || c.type === NodeType.Dimension)) {
                 return this.convertPosition(node);
+            }
+            if (node.children.some(c => c.type === NodeType.Identifier &&
+                c.name === 'inset')) {
+                return this.convertShadow(node);
             }
             let childrenNoWhitespaces = node.children.filter(removeWhiteSpaces());
             if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier)) {
                 return new CSSKeywordsValue(childrenNoWhitespaces.map(c => this.convertAstValue(c)));
+            }
+            if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier ||
+                c.type === NodeType.HexColor || c.type === NodeType.Function ||
+                c.type === NodeType.Dimension || c.type === NodeType.Number)) {
+                return this.convertShadow(node);
+            }
+            if (childrenNoWhitespaces.length < 4 && childrenNoWhitespaces.some(c => c.type === NodeType.Identifier &&
+                CSSBorderValue.lineStyleKeywords.includes(c.name))) {
+                return this.convertBorder(node);
             }
             let lastChild = childrenNoWhitespaces[childrenNoWhitespaces.length - 1];
             if (lastChild.type === NodeType.Identifier && CSSFontFamilyValue.fallbackFonts.includes(lastChild.name)) {
@@ -703,6 +718,58 @@ export default class AstCssomConverter {
         }
         components.family = this.convertFontFamily({children: children.slice(i)});
         return new CSSFontValue(components);
+    }
+
+    private convertBorder(node) {
+        let components: CSSBorderComponents = {lineStyle: null, color: null};
+        let children = node.children.filter(keepTypes(NodeType.Identifier, NodeType.Number, NodeType.Function, NodeType.Dimension, NodeType.HexColor));
+        for (let child of children) {
+            if (child.type === NodeType.Identifier) {
+                if (CSSBorderValue.lineStyleKeywords.includes(child.name)) {
+                    components.lineStyle = this.convertAstValue(child);
+                } else if (CSSBorderValue.lineWidthKeywords.includes(child.name)) {
+                    components.lineWidth = this.convertAstValue(child);
+                }
+            }
+            let value = this.convertAstValue(child);
+            if (value instanceof CSSColorValue) {
+                components.color = value;
+            } else if (value instanceof CSSUnitValue) {
+                components.lineWidth = value;
+            }
+        }
+        return new CSSBorderValue(components);
+    }
+
+    private convertShadow(node) {
+        // TODO handle 3 children inset shadow conflicting with border
+        let children = node.children.filter(keepTypes(NodeType.Number, NodeType.Dimension, NodeType.Function,
+            NodeType.HexColor, NodeType.Identifier, NodeType.Operator));
+        let shadows = splitf(children, c => c.type === NodeType.Operator && c.value === '/');
+        let layers: CSSShadow[] = [];
+        shadows.forEach(s => {
+            let components: CSSShadowComponents = {color: null};
+            s.forEach(c => {
+                let value = this.convertAstValue(c);
+                if (value instanceof CSSKeywordValue && value.value === 'inset') {
+                    components.inset = true;
+                } else if (value instanceof CSSUnitValue) {
+                    if (components.offsetX == null) {
+                        components.offsetX = value;
+                    } else if (components.offsetY == null) {
+                        components.offsetY = value;
+                    } else if (components.blurRadius == null) {
+                        components.blurRadius = value;
+                    } else if (components.spreadDistance == null) {
+                        components.spreadDistance = value;
+                    }
+                } else if (value instanceof CSSColorValue) {
+                    components.color = value;
+                }
+            });
+            layers.push(new CSSShadow(components));
+        });
+        return new CSSShadowValue(layers);
     }
 }
 
