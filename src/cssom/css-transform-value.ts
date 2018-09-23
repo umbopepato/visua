@@ -1,5 +1,10 @@
-import {CSSTransformComponent} from './css-transform-component';
 import {DOMMatrix} from './dom-matrix';
+
+export interface CSSTransformComponent {
+    is2D: boolean;
+
+    toMatrix(): DOMMatrix;
+}
 
 export class CSSTransformValue {
 
@@ -9,7 +14,7 @@ export class CSSTransformValue {
 
     constructor(private transforms: CSSTransformComponent[]) {
         if (!transforms.length) {
-            throw new TypeError(`Failed to construct CSSTransformValue: Parameter transform is empty`)
+            throw new TypeError('Failed to construct CSSTransformValue: Argument transform is empty');
         }
     }
 
@@ -29,6 +34,10 @@ export class CSSTransformValue {
         return this.transforms
             .map(t => t.toMatrix())
             .reduce((a, v) => a.multiply(v));
+    }
+
+    toString(): string {
+        return this.transforms.join(' ');
     }
 
 }

@@ -1,4 +1,4 @@
-import {CSSTransformComponent} from './css-transform-component';
+import {CSSTransformComponent} from './css-transform-value';
 import {CSSNumberish, CSSNumericValue} from './css-numeric-value';
 import {DOMMatrix} from './dom-matrix';
 import {CSS} from './css';
@@ -60,10 +60,14 @@ export class CSSRotate implements CSSTransformComponent {
             this.x = x;
             this.y = y;
             this.z = z;
-            if (![this.x, this.y, this.z].every(v => CSS.getUnitData(v).baseType === 'number')) {
+            if (![this.x, this.y, this.z].every(v => v instanceof CSSUnitValue && v.unit.baseType === 'number')) {
                 throw new TypeError(`Failed to construct CSSRotate: Failed to rectify numberish value`);
             }
         }
+    }
+
+    toString(): string {
+        return `rotate(${this.angle})`;
     }
 
 }

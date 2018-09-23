@@ -1,4 +1,4 @@
-import {CSSTransformComponent} from './css-transform-component';
+import {CSSTransformComponent} from './css-transform-value';
 import {CSSNumericValue} from './css-numeric-value';
 import {DOMMatrix} from './dom-matrix';
 
@@ -16,6 +16,10 @@ export class CSSPerspective implements CSSTransformComponent {
         if (!length.type.has('length')) {
             throw new TypeError(`Failed to construct CSSSkew: ax and ay must be angles`);
         }
+    }
+
+    toString(): string {
+        return `perspective(${this.length})`;
     }
 
 }

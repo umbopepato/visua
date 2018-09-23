@@ -1,4 +1,4 @@
-import {CSSTransformComponent} from './css-transform-component';
+import {CSSTransformComponent} from './css-transform-value';
 import {CSSNumericValue} from './css-numeric-value';
 import {DOMMatrix} from './dom-matrix';
 
@@ -16,4 +16,9 @@ export class CSSSkewY implements CSSTransformComponent {
             throw new TypeError(`Failed to construct CSSSkew: ay must be an angle`);
         }
     }
+
+    toString(): string {
+        return `skewY(${this.ay})`;
+    }
+
 }

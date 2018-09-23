@@ -6,4 +6,8 @@ export class CSSUrlValue {
         return this.value.match(/^https*/i) != null;
     }
 
+    toString(): string {
+        return `url(${this.value})`;
+    }
+
 }

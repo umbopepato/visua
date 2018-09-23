@@ -43,6 +43,19 @@ import {CSSFontFamilyValue} from './css-font-family-value';
 import {CSSFontComponents, CSSFontValue, CSSSystemFontValue} from './css-font-value';
 import {CSSBorderComponents, CSSBorderValue} from './css-border-value';
 import {CSSShadow, CSSShadowComponents, CSSBoxShadowValue} from './css-box-shadow-value';
+import {
+    CSSBlurFilter,
+    CSSBrightnessFilter,
+    CSSContrastFilter,
+    CSSDropShadowFilter,
+    CSSFilterValue,
+    CSSGrayscaleFilter,
+    CSSHueRotateFilter,
+    CSSInvertFilter,
+    CSSOpacityFilter,
+    CSSSaturateFilter,
+    CSSSepiaFilter,
+} from './css-filter-value';
 
 enum NodeType {
     AnPlusB = 'AnPlusB',
@@ -96,7 +109,7 @@ export type AstCssomConverterOptions = {
 export default class AstCssomConverter {
 
     private variables: {};
-    private transformKeywords: string[] = [
+    private transformFunctions: string[] = [
         'matrix',
         'translate',
         'translateX',
@@ -118,6 +131,18 @@ export default class AstCssomConverter {
         'rotateY',
         'rotateZ',
         'perspective',
+    ];
+    private filterFunctions: string[] = [
+        'blur',
+        'brightness',
+        'contrast',
+        'drop-shadow',
+        'grayscale',
+        'hue-rotate',
+        'invert',
+        'opacity',
+        'sepia',
+        'saturate',
     ];
     private positionKeywords: string[] = [
         'top',
@@ -322,42 +347,44 @@ export default class AstCssomConverter {
     }
 
     private convertDeclaration(node) {
+        if (node.children.some(c => c.type === NodeType.Identifier &&
+            this.positionKeywords.includes(c.name)) ||
+            node.children.every(c => c.type === NodeType.Percentage || c.type === NodeType.Dimension)) {
+            return this.convertPosition(node);
+        }
+        if (node.children.some(c => c.type === NodeType.Identifier &&
+            c.name === 'inset')) {
+            return this.convertBoxShadow(node);
+        }
+        let childrenNoWhitespaces = node.children.filter(removeWhiteSpaces());
+        if (this.transformFunctions.includes(childrenNoWhitespaces[0].name)) {
+            return this.convertTransform(node);
+        }
+        if (this.filterFunctions.includes(childrenNoWhitespaces[0].name)) {
+            return this.convertFilter(node);
+        }
+        if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier)) {
+            return new CSSKeywordsValue(childrenNoWhitespaces.map(c => this.convertAstValue(c)));
+        }
+        if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier ||
+            c.type === NodeType.HexColor || c.type === NodeType.Function ||
+            c.type === NodeType.Dimension || c.type === NodeType.Number)) {
+            return this.convertBoxShadow(node);
+        }
+        if (childrenNoWhitespaces.length < 4 && childrenNoWhitespaces.some(c => c.type === NodeType.Identifier &&
+            CSSBorderValue.lineStyleKeywords.includes(c.name))) {
+            return this.convertBorder(node);
+        }
+        let lastChild = childrenNoWhitespaces[childrenNoWhitespaces.length - 1];
+        if (lastChild.type === NodeType.Identifier && CSSFontFamilyValue.fallbackFonts.includes(lastChild.name)) {
+            if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier || c.type === NodeType.String)) {
+                return this.convertFontFamily(node);
+            } else {
+                return this.convertFont(node);
+            }
+        }
         if (node.children.length === 1) {
             return this.convertAstValue(node.children[0]);
-        } else {
-            if (this.transformKeywords.includes(node.children[0].name)) {
-                return this.convertTransform(node);
-            }
-            if (node.children.some(c => c.type === NodeType.Identifier &&
-                this.positionKeywords.includes(c.name)) ||
-                node.children.every(c => c.type === NodeType.Percentage || c.type === NodeType.Dimension)) {
-                return this.convertPosition(node);
-            }
-            if (node.children.some(c => c.type === NodeType.Identifier &&
-                c.name === 'inset')) {
-                return this.convertBoxShadow(node);
-            }
-            let childrenNoWhitespaces = node.children.filter(removeWhiteSpaces());
-            if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier)) {
-                return new CSSKeywordsValue(childrenNoWhitespaces.map(c => this.convertAstValue(c)));
-            }
-            if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier ||
-                c.type === NodeType.HexColor || c.type === NodeType.Function ||
-                c.type === NodeType.Dimension || c.type === NodeType.Number)) {
-                return this.convertBoxShadow(node);
-            }
-            if (childrenNoWhitespaces.length < 4 && childrenNoWhitespaces.some(c => c.type === NodeType.Identifier &&
-                CSSBorderValue.lineStyleKeywords.includes(c.name))) {
-                return this.convertBorder(node);
-            }
-            let lastChild = childrenNoWhitespaces[childrenNoWhitespaces.length - 1];
-            if (lastChild.type === NodeType.Identifier && CSSFontFamilyValue.fallbackFonts.includes(lastChild.name)) {
-                if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier || c.type === NodeType.String)) {
-                    return this.convertFontFamily(node);
-                } else {
-                    return this.convertFont(node);
-                }
-            }
         }
     }
 
@@ -505,6 +532,27 @@ export default class AstCssomConverter {
                 return new CSSRepeatingLinearGradient(this.convertLinearGradient(node));
             case 'repeating-radial-gradient':
                 return new CSSRepeatingRadialGradient(this.convertRadialGradient(node));
+            case 'blur':
+                return new CSSBlurFilter(this.convertAstValue(node.children[0]));
+            case 'brightness':
+                return new CSSBrightnessFilter(this.convertAstValue(node.children[0]));
+            case 'contrast':
+                return new CSSContrastFilter(this.convertAstValue(node.children[0]));
+            case 'drop-shadow':
+                return new CSSDropShadowFilter(this.convertBoxShadow(node));
+            case 'grayscale':
+                return new CSSGrayscaleFilter(this.convertAstValue(node.children[0]));
+            case 'hue-rotate':
+                return new CSSHueRotateFilter(this.convertAstValue(node.children[0]));
+            case 'invert':
+                return new CSSInvertFilter(this.convertAstValue(node.children[0]));
+            case 'opacity':
+                return new CSSOpacityFilter(this.convertAstValue(node.children[0]));
+            case 'saturate':
+                return new CSSSaturateFilter(this.convertAstValue(node.children[0]));
+            case 'sepia':
+                return new CSSSepiaFilter(this.convertAstValue(node.children[0]));
+
         }
     }
 
@@ -770,6 +818,11 @@ export default class AstCssomConverter {
             layers.push(new CSSShadow(components));
         });
         return new CSSBoxShadowValue(layers);
+    }
+
+    private convertFilter(node) {
+        let children = node.children.filter(keepTypes(NodeType.Function));
+        return new CSSFilterValue(children.map(c => this.convertFunction(c)));
     }
 }
 

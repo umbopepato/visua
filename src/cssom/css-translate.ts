@@ -1,4 +1,4 @@
-import {CSSTransformComponent} from './css-transform-component';
+import {CSSTransformComponent} from './css-transform-value';
 import {CSSNumericValue} from './css-numeric-value';
 import {DOMMatrix} from './dom-matrix';
 import {CSS} from './css';
@@ -29,4 +29,11 @@ export class CSSTranslate implements CSSTransformComponent {
         }
         if (!z) this.z = CSS.px(0);
     }
+
+    toString(): string {
+        let components = [this.x, this.y];
+        if (!this.z.equals(CSS.px(0))) components.push(this.z);
+        return `translate(${components.join(', ')})`;
+    }
+
 }

@@ -1,4 +1,4 @@
-import {CSSTransformComponent} from './css-transform-component';
+import {CSSTransformComponent} from './css-transform-value';
 import {CSSNumberish, CSSNumericValue} from './css-numeric-value';
 import {DOMMatrix} from './dom-matrix';
 import {CSS, CSSBaseType} from './css';
@@ -30,4 +30,11 @@ export class CSSScale implements CSSTransformComponent {
             throw new TypeError(`Failed to construct CSSRotate: x, y, z must be of type <number>`);
         }
     }
+
+    toString(): string {
+        let components = [this.x, this.y];
+        if (!this.z.equals(CSS.number(1))) components.push(this.z);
+        return `scale(${components.join(', ')})`;
+    }
+
 }
