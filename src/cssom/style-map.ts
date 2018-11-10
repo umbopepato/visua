@@ -4,9 +4,9 @@ import {table, getBorderCharacters} from 'table';
 import {logger} from '../logger';
 import chalk from 'chalk';
 
-export class StyleMapEntry {
-    constructor(public name: string, public value: CSSStyleValue) {
-    }
+export interface StyleMapEntry {
+    name: string;
+    value: CSSStyleValue;
 }
 
 /**
@@ -47,12 +47,15 @@ export class StyleMap {
     /**
      * Gets the CSSStyleValues of the properties matching the given regex
      *
-     * @param property A regular expression to test against property names
+     * @param property A regular expression to ls against property names
      * @returns An array of StyleMapEntries
      */
     getSimilar(property: RegExp): StyleMapEntry[] {
         let foundKeys = Object.keys(this.map).filter(k => k.match(property) != null);
-        return foundKeys.map(k => new StyleMapEntry(k, this.map[k]));
+        return foundKeys.map(k => <StyleMapEntry>{
+            name: k,
+            value: this.map[k],
+        });
     }
 
     /**

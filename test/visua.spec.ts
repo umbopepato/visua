@@ -6,7 +6,7 @@ import {StyleMap} from '../src/cssom/style-map';
 describe('visua()', () => {
 
     it('should create a StyleMap from one or more identity css files', (done) => {
-        visua('test/identity.css')
+        visua('ls/identity.css')
             .then(styleMap => {
                 expect(styleMap.get('--background-color')).to.be.instanceOf(CSSHexColor);
                 done();

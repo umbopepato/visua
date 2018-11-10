@@ -58,7 +58,7 @@ export type CSSUnitData = {
 
 export class CSS {
 
-    static units = {
+    private static units = {
 
         // <dimensionless>
         [CSSUnit.number]: {

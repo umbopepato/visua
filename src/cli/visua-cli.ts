@@ -2,7 +2,7 @@
 import * as program from 'commander';
 import {init} from './commands/init';
 import {run} from './commands/run';
-import {test} from './commands/test';
+import {list} from './commands/list';
 
 program
     .version('0.0.1')
@@ -13,9 +13,9 @@ program.command('init')
     .alias('initialize')
     .action(init);
 
-program.command('test')
-    .alias('t')
-    .action(test);
+program.command('list')
+    .alias('ls')
+    .action(list);
 
 program.command('run')
     .allowUnknownOption()

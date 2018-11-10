@@ -1,6 +1,7 @@
 import {logger} from '../../logger';
 import {Plugin} from '../../plugin';
 import {StyleMap, visua} from '../../visua';
+import * as path from 'path';
 
 export const run = async (options, args: string[]) => {
     let styleMap: StyleMap;
@@ -26,7 +27,7 @@ export const run = async (options, args: string[]) => {
         let plugin;
         try {
             // TODO consider supporting global packages and parallelization
-            PluginClass = require(`${process.cwd()}/node_modules/visua-${taskArgs[0]}`).default;
+            PluginClass = require(path.join(process.cwd(), 'node_modules', `visua-${taskArgs[0]}`)).default;
             plugin = new PluginClass();
             console.log(plugin);
         } catch (error) {

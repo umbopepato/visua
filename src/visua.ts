@@ -25,7 +25,7 @@ export * from './cssom/css-unit-value';
 export * from './cssom/css-url-value';
 export * from './cssom/dom-matrix';
 
-export const DEFAULT_PATH = `${process.cwd()}/identity.css`;
+export const DEFAULT_IDENTITY_FILE_PATH = fsPath.join(process.cwd(), 'identity.css');
 
 export interface VisuaOptions {
     path?: string;
@@ -33,13 +33,13 @@ export interface VisuaOptions {
 }
 
 /**
- * Builds a StyleMap from the identity stylesheets
+ * Builds a StyleMap from the provided identity stylesheets
  *
  * @param options Visua options
  * @returns The generated StyleMap
  */
 export const visua = async (options: VisuaOptions): Promise<StyleMap> => {
-        const path = options.path || DEFAULT_PATH;
+        const path = options.path || DEFAULT_IDENTITY_FILE_PATH;
         let file;
         try {
             file = fs.readFileSync(path, {encoding: 'UTF-8'});
@@ -58,7 +58,6 @@ export const visua = async (options: VisuaOptions): Promise<StyleMap> => {
             positions: true,
             filename: path,
         });
-        //console.log(JSON.stringify(cssTree.toPlainObject(ast), null, 4));
         return await new AstCssomConverter(ast, {
                 identityDir: fsPath.dirname(path),
                 strict: options.strict,

@@ -1,7 +1,7 @@
 import {logger} from '../../logger';
 import {visua} from '../../visua';
 
-export const test = async (options) => {
+export const list = async (options) => {
     try {
         let styleMap = await visua({
             path: options.parent.path,
