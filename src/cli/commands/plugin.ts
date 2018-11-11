@@ -16,9 +16,9 @@ export const plugin = async () => {
     console.log('Creating a new empty visua plugin.');
     console.log('See https://visua.io/guide/writing-plugins#naming for guidance on visua plugins naming conventions.\n');
 
-    let slug = await rlp.questionAsync('Enter the plugin slug (don\'t prepend visua-): ');
+    let slug = await rlp.questionAsync('Enter the plugin slug: visua-');
     while (slug == null || slug.length === 0) {
-        slug = await rlp.questionAsync('Please provide a non empty slug: ');
+        slug = await rlp.questionAsync('Please provide a non empty slug: visua-');
     }
     let displayName = await rlp.questionAsync('Enter display name: ');
     while (!displayName || !displayName.length) {
@@ -33,4 +33,5 @@ export const plugin = async () => {
     console.log('Removing versioning');
     rimraf(path.join(pluginDir, '.git'), () =>
     console.log(`Project succesfully created in folder visua-${slug}`));
+    process.exit();
 };

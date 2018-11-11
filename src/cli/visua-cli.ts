@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 import * as program from 'commander';
 import {init} from './commands/init';
 import {run} from './commands/run';
@@ -6,22 +7,27 @@ import {list} from './commands/list';
 import {plugin} from './commands/plugin';
 
 program
-    .version('0.0.1')
+    .version(require('../../package.json').version)
     .option('-s, --strict', 'exit on parse errors', false)
-    .option('-p, --path <mainFile>', 'path to the main identity file');
+    .option('-p, --path <mainIdentityFile>', 'path to the main identity file');
 
-program.command('init')
-    .alias('initialize')
+program.command('initialize')
+    .alias('init')
+    .description('initializes an empty visua project')
     .action(init);
 
 program.command('list')
     .alias('ls')
+    .description('loads identity files and displays the generated StyleMap in a table')
     .action(list);
 
 program.command('plugin')
+    .alias('pl')
+    .description('starts an interactive shell to create a new plugin from the starter template')
     .action(plugin);
 
 program.command('run')
+    .description('runs one or more plugin. More info at https://visua.io/guide/visua-cli/#plugin')
     .allowUnknownOption()
     .action(() => {
         let rawArgs = program.rawArgs;
@@ -31,5 +37,10 @@ program.command('run')
         };
         run(globalOptions, rawArgs.slice(rawArgs.indexOf('run') + 1));
     });
+
+if (!process.argv.slice(2).length) {
+    program.outputHelp();
+    process.exit();
+}
 
 program.parse(process.argv);

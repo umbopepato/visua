@@ -49,4 +49,5 @@ export const run = async (options, args: string[]) => {
             throw new TypeError(`${plugin.name} must extend the Plugin class`);
         }
     }
+    process.exit();
 };

@@ -366,11 +366,6 @@ export default class AstCssomConverter {
         if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier)) {
             return new CSSKeywordsValue(childrenNoWhitespaces.map(c => this.convertAstValue(c)));
         }
-        if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier ||
-            c.type === NodeType.HexColor || c.type === NodeType.Function ||
-            c.type === NodeType.Dimension || c.type === NodeType.Number)) {
-            return this.convertBoxShadow(node);
-        }
         if (childrenNoWhitespaces.length < 4 && childrenNoWhitespaces.some(c => c.type === NodeType.Identifier &&
             CSSBorderValue.lineStyleKeywords.includes(c.name))) {
             return this.convertBorder(node);
@@ -385,6 +380,11 @@ export default class AstCssomConverter {
         }
         if (node.children.length === 1) {
             return this.convertAstValue(node.children[0]);
+        }
+        if (childrenNoWhitespaces.every(c => c.type === NodeType.Identifier ||
+            c.type === NodeType.HexColor || c.type === NodeType.Function ||
+            c.type === NodeType.Dimension || c.type === NodeType.Number)) {
+            return this.convertBoxShadow(node);
         }
     }
 

@@ -11,4 +11,5 @@ export const list = async (options) => {
     } catch (e) {
         logger.error(e.formattedMessage || e.stack || e);
     }
+    process.exit();
 };
