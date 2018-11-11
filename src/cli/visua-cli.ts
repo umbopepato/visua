@@ -11,10 +11,11 @@ program
     .option('-s, --strict', 'exit on parse errors', false)
     .option('-p, --path <mainIdentityFile>', 'path to the main identity file');
 
-program.command('initialize')
-    .alias('init')
-    .description('initializes an empty visua project')
-    .action(init);
+// TODO implement init interactive shell
+// program.command('initialize')
+//     .alias('init')
+//     .description('initializes an empty visua project')
+//     .action(init);
 
 program.command('list')
     .alias('ls')
