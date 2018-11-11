@@ -1,6 +1,7 @@
 import {StyleMap} from './cssom/style-map';
 
-export type OptionsMap = {[key: string]: Function};
+export type ValueInitializer = (value: string) => any;
+export type OptionsMap = {[key: string]: Function | ValueInitializer};
 
 export abstract class Plugin {
 

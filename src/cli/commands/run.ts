@@ -41,7 +41,11 @@ export const run = async (options, args: string[]) => {
                     let [optName, optVal] = taskArgs[i].split('=');
                     optName = optName.substr(2);
                     if (optionInitializers.hasOwnProperty(optName)) {
-                        pluginOptions[optName] = optionInitializers[optName](optVal);
+                        if (optionInitializers[optName] === Boolean && optVal == null) {
+                            pluginOptions[optName] = true;
+                        } else if (optVal != null) {
+                            pluginOptions[optName] = optionInitializers[optName](optVal);
+                        }
                     }
                 }
                 plugin.run(styleMap, pluginOptions);
