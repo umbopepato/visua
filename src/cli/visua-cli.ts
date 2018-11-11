@@ -3,6 +3,7 @@ import * as program from 'commander';
 import {init} from './commands/init';
 import {run} from './commands/run';
 import {list} from './commands/list';
+import {plugin} from './commands/plugin';
 
 program
     .version('0.0.1')
@@ -16,6 +17,9 @@ program.command('init')
 program.command('list')
     .alias('ls')
     .action(list);
+
+program.command('plugin')
+    .action(plugin);
 
 program.command('run')
     .allowUnknownOption()

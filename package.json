@@ -41,6 +41,8 @@
     "chalk": "^2.4.1",
     "commander": "^2.15.1",
     "css-tree": "^1.0.0-alpha.29",
+    "readline-promise": "^1.0.3",
+    "rimraf": "^2.6.2",
     "table": "^5.0.2",
     "winston": "^3.1.0"
   },
