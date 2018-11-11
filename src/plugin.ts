@@ -1,8 +1,10 @@
 import {StyleMap} from './cssom/style-map';
 
+export type OptionsMap = {[key: string]: Function};
+
 export abstract class Plugin {
 
-    static get options(): {[key: string]: any} {
+    static get options(): OptionsMap {
         return {};
     };
 
