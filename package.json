@@ -4,8 +4,7 @@
   "description": "A powerful brand identity automation tool.",
   "main": "dist/visua.js",
   "scripts": {
-    "start": "node ./dist/cli/visua-cli.js",
-    "test": "nyc ts-mocha -p ./ test/**/*.spec.ts",
+    "test": "nyc mocha -r ts-node/register test/**/*.spec.ts",
     "build": "npx tsc",
     "build:watch": "npx tsc -w",
     "build:clean": "rm -r dist && npm run build"
@@ -32,7 +31,6 @@
     "mocha": "^5.2.0",
     "nyc": "^11.9.0",
     "source-map-support": "^0.5.6",
-    "ts-mocha": "^1.2.0",
     "ts-node": "^6.1.0",
     "typedoc": "^0.13.0",
     "typedoc-plugin-markdown": "^1.1.18",

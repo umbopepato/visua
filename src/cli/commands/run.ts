@@ -14,31 +14,31 @@ export const run = async (options, args: string[]) => {
         logger.error(e.formattedMessage || e.stack || e);
         return;
     }
-    let tasksArgs: string[][] = [];
+    let pluginsArgs: string[][] = [];
     for (let arg of args) {
         if (!arg.startsWith('--')) {
-            tasksArgs.push([arg]);
+            pluginsArgs.push([arg]);
         } else {
-            tasksArgs[tasksArgs.length - 1].push(arg);
+            pluginsArgs[pluginsArgs.length - 1].push(arg);
         }
     }
-    for (let taskArgs of tasksArgs) {
+    for (let pluginArgs of pluginsArgs) {
         let PluginClass;
         let plugin;
         try {
             // TODO consider supporting global packages and parallelization
-            PluginClass = require(path.join(process.cwd(), 'node_modules', `visua-${taskArgs[0]}`)).default;
+            PluginClass = require(path.join(process.cwd(), 'node_modules', `visua-${pluginArgs[0]}`)).default;
             plugin = new PluginClass();
             console.log(plugin);
         } catch (error) {
-            logger.error(`Error: Cannot find plugin named visua-${taskArgs[0]}.\n\nMake sure that you have run \`npm install --save visua-${taskArgs[0]}\` and check that you have typed correctly the name of the plugin.\nAlso, when you run \`visua run <plugin name>\` you don't have to prepend visua- to the name of the plugin (i.e. visua-bootstrap -> visua run bootstrap).\n(Plugins installed as global packages are not yet supported)`);
+            logger.error(`Error: Cannot find plugin named visua-${pluginArgs[0]}.\n\nMake sure that you have run \`npm install visua-${pluginArgs[0]}\` and check that you have typed correctly the name of the plugin.\nAlso, when you run \`visua run <plugin name>\` you don't have to prepend visua- to the name of the plugin (i.e. visua-bootstrap -> visua run bootstrap).\n(Plugins installed as global packages are not yet supported)`);
             return;
         }
         if (plugin != null) {
                 let pluginOptions = {};
                 let optionInitializers = PluginClass.options;
-                for (let i = 1; i < taskArgs.length; i++) {
-                    let [optName, optVal] = taskArgs[i].split('=');
+                for (let i = 1; i < pluginArgs.length; i++) {
+                    let [optName, optVal] = pluginArgs[i].split('=');
                     optName = optName.substr(2);
                     if (optionInitializers.hasOwnProperty(optName)) {
                         if (optionInitializers[optName] === Boolean && optVal == null) {
