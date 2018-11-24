@@ -1,9 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * @internal
- */
-
 import * as program from 'commander';
 import {init} from './commands/init';
 import {run} from './commands/run';

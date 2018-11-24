@@ -38,7 +38,7 @@ const DEFAULT_IDENTITY_FILE_PATH = fsPath.join(process.cwd(), DEFAULT_IDENTITY_F
 
 export interface VisuaOptions {
     /**
-     * The path to the mail identity file or to the directory containing it
+     * The path to the main identity file or to the directory containing it
      */
     path?: string;
 

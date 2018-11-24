@@ -5,9 +5,9 @@
   "main": "dist/visua.js",
   "scripts": {
     "test": "nyc mocha -r ts-node/register test/**/*.spec.ts",
-    "build": "npx tsc",
-    "build:watch": "npx tsc -w",
-    "build:clean": "rm -r dist && npm run build"
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "build:clean": "rm -rf dist && npm run build"
   },
   "bin": {
     "visua": "dist/cli/visua-cli.js"
@@ -33,7 +33,6 @@
     "source-map-support": "^0.5.6",
     "ts-node": "^6.1.0",
     "typedoc": "^0.13.0",
-    "typedoc-plugin-markdown": "^1.1.18",
     "typescript": "^2.9.2"
   },
   "dependencies": {
@@ -43,6 +42,7 @@
     "readline-promise": "^1.0.3",
     "rimraf": "^2.6.2",
     "table": "^5.0.2",
+    "visua-typedoc-theme": "file:../../visua-typedoc-theme",
     "winston": "^3.1.0"
   },
   "nyc": {
