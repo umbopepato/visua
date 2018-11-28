@@ -49,12 +49,45 @@ export interface VisuaOptions {
 }
 
 /**
- * Builds a StyleMap from the provided identity stylesheets
+ * Builds a StyleMap from the provided identity stylesheets.
+ *
+ * If called without options, the `visua` method searches for a file named exactly
+ * identity.css in the current working directory:
+ *
+ * ```typescript
+ * const styleMap = await visua();
+ * ```
+ *
+ * The path option can be used to specify a relative path to a directory containing
+ * the file identity.css or to a specific file.
+ *
+ * The following example searches for a file named identity.css in cwd/subdir:
+ * ```typescript
+ * const styleMap = await visua({
+ *     path: 'subdir',
+ * });
+ * ```
+ *
+ * The following example loads a file named main.css in subdir subdirectory:
+ * ```typescript
+ * const styleMap = await visua({
+ *     path: 'subdir/main.css',
+ * });
+ * ```
+ *
+ * The strict option can be used to terminate the process on parse errors,
+ * otherwise Visua will try to recover from soft errors in the css:
+ * ```typescript
+ * const styleMap = await visua({
+ *     path: 'subdir/main.css',
+ *     strict: true,
+ * });
+ * ```
  *
  * @param options Visua options
- * @returns The generated StyleMap
+ * @returns A Promise that resolves with the generated StyleMap
  */
-export const visua = async (options: VisuaOptions): Promise<StyleMap> => {
+export const visua = async (options?: VisuaOptions): Promise<StyleMap> => {
     let path = DEFAULT_IDENTITY_FILE_PATH;
     if (options && options.path != null) {
         if (fs.lstatSync(options.path).isDirectory()) {

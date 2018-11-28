@@ -82,6 +82,9 @@ export class StyleMap {
         });
     }
 
+    /**
+     * Prints the StyleMap in a table
+     */
     print() {
         const header = [chalk.bold('Variable'), chalk.bold('CSSStyleValue instance'), chalk.bold('Value')];
         logger.info(`StyleMap:\n${table([
