@@ -40,14 +40,26 @@ export const run = async (options, args: string[]) => {
             for (let i = 1; i < pluginArgs.length; i++) {
                 let [optName, optVal] = pluginArgs[i].split('=');
                 optName = optName.substr(2);
-                if (optionInitializers.hasOwnProperty(optName)) {
-                    if (optionInitializers[optName] === Boolean && optVal == null) {
-                        pluginOptions[optName] = true;
+                if (optName in optionInitializers) {
+                    if (optionInitializers[optName] === Boolean) {
+                        if (optVal == null) {
+                            pluginOptions[optName] = true;
+                        } else {
+                            pluginOptions[optName] = optVal.toLowerCase() === 'true';
+                        }
                     } else if (optVal != null) {
                         pluginOptions[optName] = optionInitializers[optName](optVal);
                     }
                 }
             }
+            Object.entries(optionInitializers)
+                .filter(i => i[1] === Boolean)
+                .map(i => i[0])
+                .forEach(i => {
+                    if (!(i in pluginOptions)) {
+                        pluginOptions[i] = false;
+                    }
+                });
             plugin.run(styleMap, pluginOptions);
         }
     }
