@@ -3,6 +3,9 @@ import {CSSUnitValue} from './css-unit-value';
 import {CSSKeywordValue} from './css-keyword-value';
 import {CSSColorValue} from './css-color-value';
 
+/**
+ * The components of the border value
+ */
 export interface CSSBorderComponents {
 
     // Some components are required to recognize the value
@@ -13,6 +16,20 @@ export interface CSSBorderComponents {
 
 }
 
+/**
+ * Represents a CSS border value like the one used in `border` properties.
+ *
+ * **Syntax**
+ * ```
+ * [<length>] <identifier> <color>
+ * ```
+ *
+ * **Examples**
+ * ```
+ * --border: 1px solid black;
+ * --border: 4px dotted #CCC;
+ * ```
+ */
 export class CSSBorderValue extends CSSStyleValue {
 
     public lineWidth: CSSUnitValue | CSSKeywordValue;
@@ -45,6 +62,9 @@ export class CSSBorderValue extends CSSStyleValue {
         this.color = components.color;
     }
 
+    /**
+     * Serializes the `CSSBorderValue` to standard CSS
+     */
     toString(): string {
         return `${this.lineWidth} ${this.lineStyle} ${this.color}`;
     }
