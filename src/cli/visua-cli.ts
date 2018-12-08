@@ -5,6 +5,7 @@ import {init} from './commands/init';
 import {run} from './commands/run';
 import {list} from './commands/list';
 import {plugin} from './commands/plugin';
+import {logger} from '../logger';
 
 program
     .version(require('../../package.json').version)
@@ -30,13 +31,18 @@ program.command('plugin')
 program.command('run')
     .description('runs one or more plugin. More info at https://visua.io/guide/visua-cli/#plugin')
     .allowUnknownOption()
-    .action(() => {
+    .action(async () => {
         let rawArgs = program.rawArgs;
         let globalOptions = {
             path: program.path,
             strict: program.strict,
         };
-        run(globalOptions, rawArgs.slice(rawArgs.indexOf('run') + 1));
+        try {
+            await run(globalOptions, rawArgs.slice(rawArgs.indexOf('run') + 1));
+        } catch (e) {
+            logger.error(e.formattedMessage || e.stack || e);
+        }
+        process.exit();
     });
 
 if (!process.argv.slice(2).length) {

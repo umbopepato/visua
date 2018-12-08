@@ -48,3 +48,21 @@ export abstract class Plugin {
     abstract run(styleMap: StyleMap, options: {[key: string]: any});
 
 }
+
+/**
+ * An Error class for plugin exceptions
+ */
+export class PluginError extends Error {
+
+  /**
+   * Creates a new PluginError
+   *
+   * @param message The error's message
+   */
+  constructor(message: string) {
+    super(message);
+    this.name = this.constructor.name;
+    Error.captureStackTrace(this, this.constructor);
+  }
+
+}
