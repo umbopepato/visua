@@ -29,9 +29,11 @@ export const run = async (options, args: string[]) => {
             // TODO consider supporting global packages and parallelization
             PluginClass = require(path.join(process.cwd(), 'node_modules', `visua-${pluginArgs[0]}`)).default;
             plugin = new PluginClass();
-            console.log(plugin);
         } catch (error) {
-            logger.error(`Error: Cannot find plugin named visua-${pluginArgs[0]}.\n\nMake sure that you have run \`npm install visua-${pluginArgs[0]}\` and check that you have typed correctly the name of the plugin.\nAlso, when you run \`visua run <plugin name>\` you don't have to prepend visua- to the name of the plugin (i.e. visua-bootstrap -> visua run bootstrap).\n(Plugins installed as global packages are not supported yet)`);
+            logger.error(`Error: Cannot find plugin named visua-${pluginArgs[0]}.\n\n` +
+            `Make sure that you have run \`npm install visua-${pluginArgs[0]}\` and check that you have typed correctly the name of the plugin.\n` +
+            `Also, when you run \`visua run <plugin name>\` you don't have to prepend visua- to the name of the plugin (i.e. visua-bootstrap -> visua run bootstrap).\n` +
+            `(Plugins installed as global packages are not supported yet)`);
             return;
         }
         if (plugin != null) {
@@ -60,7 +62,12 @@ export const run = async (options, args: string[]) => {
                         pluginOptions[i] = false;
                     }
                 });
-            plugin.run(styleMap, pluginOptions);
+            try {
+                plugin.run(styleMap, pluginOptions);
+            } catch (e) {
+                logger.error(e.formattedMessage || e.stack || e);
+                logger.warn(`An error occurred during the execution of the ${pluginArgs[0]} plugin (see above).`);
+            }
         }
     }
 };
