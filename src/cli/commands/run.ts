@@ -3,10 +3,10 @@ import {Plugin} from '../../plugin';
 import {StyleMap, visua} from '../../visua';
 import * as path from 'path';
 
-export const run = async (options, args: string[]) => {
+export const run = (options, args: string[]) => {
     let styleMap: StyleMap;
     try {
-        styleMap = await visua({
+        styleMap = visua({
             path: options.path,
             strict: options.strict,
         });

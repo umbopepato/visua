@@ -31,14 +31,14 @@ program.command('plugin')
 program.command('run')
     .description('runs one or more plugin. More info at https://visua.io/guide/visua-cli/#plugin')
     .allowUnknownOption()
-    .action(async () => {
+    .action( () => {
         let rawArgs = program.rawArgs;
         let globalOptions = {
             path: program.path,
             strict: program.strict,
         };
         try {
-            await run(globalOptions, rawArgs.slice(rawArgs.indexOf('run') + 1));
+            run(globalOptions, rawArgs.slice(rawArgs.indexOf('run') + 1));
         } catch (e) {
             logger.error(e.formattedMessage || e.stack || e);
         }

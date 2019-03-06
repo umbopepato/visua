@@ -1,12 +1,30 @@
 import {
-    Atrule, AtrulePlain, AtrulePrelude,
+    Atrule,
+    AtrulePlain,
+    AtrulePrelude,
     CssLocation,
     CssNode,
     CssNodeCommon,
-    CssNodePlain, Declaration, DeclarationPlain, FunctionNode, Identifier, List, ListItem,
-    parse, RulePlain, StringNode, StyleSheet, StyleSheetPlain,
+    CssNodePlain,
+    Declaration,
+    DeclarationPlain,
+    FunctionNode,
+    Identifier,
+    List,
+    ListItem,
+    parse,
+    PseudoClassSelectorPlain,
+    RulePlain,
+    SelectorListPlain,
+    SelectorPlain,
+    StringNode,
+    StyleSheet,
+    StyleSheetPlain,
     SyntaxParseError,
-    toPlainObject, Url, Value, ValuePlain,
+    toPlainObject,
+    Url,
+    Value,
+    ValuePlain,
     walk,
 } from 'css-tree';
 import {StyleMap} from './style-map';
@@ -161,11 +179,6 @@ export enum CssNodeType {
     Url = 'Url',
     Value = 'Value',
     WhiteSpace = 'WhiteSpace',
-}
-
-export interface AstCssomConverterOptions {
-    strict: boolean;
-    identityDir: string;
 }
 
 interface VariableReferencesMap {
@@ -337,15 +350,14 @@ export class Parser {
         if (node.prelude == null ||
             node.prelude.type !== CssNodeType.SelectorList ||
             node.prelude.children == null ||
-            !node.prelude.children.length ||
-            node.prelude.children[0].children == null ||
-            !node.prelude.children[0].children.length) {
+            !node.prelude.children.length) {
             throw new ParseError(`Couldn't recognize main selector structure. See https://visua.io/guide/structuring-identity-files for guidance on structuring your css files.`,
                 node.loc);
         }
-        let mainSelector = node.prelude.children[0].children[0];
-        if (mainSelector.type !== CssNodeType.PseudoClassSelector || mainSelector.name !== 'root') {
-            warnAt(`Unexpected selector ${mainSelector.name}. Main selector should be :root`, mainSelector.loc);
+        let mainSelector: CssNodePlain = (<SelectorPlain>node.prelude.children[0]).children[0];
+        if (!nodeIs<PseudoClassSelectorPlain>(mainSelector, CssNodeType.PseudoClassSelector) || mainSelector.name !== 'root') {
+            // @ts-ignore
+            warnAt(`Unexpected selector ${mainSelector.name || ''}. Main selector should be :root`, mainSelector.loc);
             return;
         }
         if (node.block == null || node.block.children == null || !node.block.children.length) {
@@ -393,32 +405,34 @@ export class Parser {
     }
 
     private convertDeclaration(node) {
-        if (node.children.some(c => c.type === CssNodeType.Identifier &&
-            POSITION_KEYWORDS.includes(c.name)) ||
-            node.children.every(c => c.type === CssNodeType.Percentage || c.type === CssNodeType.Dimension)) {
-            return this.convertPosition(node);
+        let normalizedChildren = node.children.filter(removeWhiteSpaces());
+        if (normalizedChildren.length > 1) {
+            if (node.children.some(c => c.type === CssNodeType.Identifier &&
+                POSITION_KEYWORDS.includes(c.name)) ||
+                node.children.every(c => c.type === CssNodeType.Percentage || c.type === CssNodeType.Dimension)) {
+                return this.convertPosition(node);
+            }
+            if (node.children.some(c => c.type === CssNodeType.Identifier &&
+                c.name === 'inset')) {
+                return this.convertBoxShadow(node);
+            }
         }
-        if (node.children.some(c => c.type === CssNodeType.Identifier &&
-            c.name === 'inset')) {
-            return this.convertBoxShadow(node);
-        }
-        let childrenNoWhitespaces = node.children.filter(removeWhiteSpaces());
-        if (TRANSFORM_FUNCTIONS.includes(childrenNoWhitespaces[0].name)) {
+        if (TRANSFORM_FUNCTIONS.includes(normalizedChildren[0].name)) {
             return this.convertTransform(node);
         }
-        if (FILTER_FUNCTIONS.includes(childrenNoWhitespaces[0].name)) {
+        if (FILTER_FUNCTIONS.includes(normalizedChildren[0].name)) {
             return this.convertFilter(node);
         }
-        if (childrenNoWhitespaces.every(c => c.type === CssNodeType.Identifier)) {
-            return new CSSKeywordsValue(childrenNoWhitespaces.map(c => this.convertAstValue(c)));
+        if (normalizedChildren.every(c => c.type === CssNodeType.Identifier)) {
+            return new CSSKeywordsValue(normalizedChildren.map(c => this.convertAstValue(c)));
         }
-        if (childrenNoWhitespaces.length < 4 && childrenNoWhitespaces.some(c => c.type === CssNodeType.Identifier &&
+        if (normalizedChildren.length < 4 && normalizedChildren.some(c => c.type === CssNodeType.Identifier &&
             CSSBorderValue.lineStyleKeywords.includes(c.name))) {
             return this.convertBorder(node);
         }
-        let lastChild = childrenNoWhitespaces[childrenNoWhitespaces.length - 1];
+        let lastChild = normalizedChildren[normalizedChildren.length - 1];
         if (lastChild.type === CssNodeType.Identifier && CSSFontFamilyValue.fallbackFonts.includes(lastChild.name)) {
-            if (childrenNoWhitespaces.every(c => c.type === CssNodeType.Identifier || c.type === CssNodeType.String)) {
+            if (normalizedChildren.every(c => c.type === CssNodeType.Identifier || c.type === CssNodeType.String)) {
                 return this.convertFontFamily(node);
             } else {
                 return this.convertFont(node);
@@ -427,7 +441,7 @@ export class Parser {
         if (node.children.length === 1) {
             return this.convertAstValue(node.children[0]);
         }
-        if (childrenNoWhitespaces.every(c => c.type === CssNodeType.Identifier ||
+        if (normalizedChildren.every(c => c.type === CssNodeType.Identifier ||
             c.type === CssNodeType.HexColor || c.type === CssNodeType.Function ||
             c.type === CssNodeType.Dimension || c.type === CssNodeType.Number)) {
             return this.convertBoxShadow(node);

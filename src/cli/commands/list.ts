@@ -1,13 +1,13 @@
 import {logger} from '../../logger';
-import {visua} from '../../visua';
+import {StyleMap, visua} from '../../visua';
 
 export const list = async (options) => {
     try {
-        let styleMap = await visua({
+        let styleMap: StyleMap = visua({
             path: options.parent.path,
             strict: options.parent.strict,
         });
-        //styleMap.print();
+        styleMap.print();
     } catch (e) {
         logger.error(e.formattedMessage || e.stack || e);
     }

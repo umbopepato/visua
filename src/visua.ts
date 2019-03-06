@@ -1,10 +1,7 @@
-import {Atrule, AtrulePrelude, CssNode, CssNodeCommon, parse, SyntaxParseError, toPlainObject, walk} from 'css-tree';
-import {CssNodeType, ParseError, parseIdentityFiles} from './cssom/ast-cssom-converter';
 import * as fsPath from 'path';
 import * as fs from 'fs';
 import {StyleMap} from './cssom/style-map';
-import {logger} from './logger';
-import {removeQuotes, warnAt} from './util';
+import {Parser} from './cssom/parser';
 
 export * from './plugin';
 export * from './cssom/style-map';
@@ -56,7 +53,7 @@ export interface VisuaOptions {
  * identity.css in the current working directory:
  *
  * ```typescript
- * const styleMap = await visua();
+ * const styleMap = visua();
  * ```
  *
  * The path option can be used to specify a relative path to a directory containing
@@ -64,14 +61,14 @@ export interface VisuaOptions {
  *
  * The following example searches for a file named identity.css in cwd/subdir:
  * ```typescript
- * const styleMap = await visua({
+ * const styleMap = visua({
  *     path: 'subdir',
  * });
  * ```
  *
  * The following example loads a file named main.css in subdir subdirectory:
  * ```typescript
- * const styleMap = await visua({
+ * const styleMap = visua({
  *     path: 'subdir/main.css',
  * });
  * ```
@@ -79,16 +76,16 @@ export interface VisuaOptions {
  * The strict option can be used to terminate the process on parse errors,
  * otherwise Visua will try to recover from soft errors in the css:
  * ```typescript
- * const styleMap = await visua({
+ * const styleMap = visua({
  *     path: 'subdir/main.css',
  *     strict: true,
  * });
  * ```
  *
  * @param options Visua options
- * @returns A Promise that resolves with the generated StyleMap
+ * @returns The generated StyleMap
  */
-export const visua = async (options?: VisuaOptions): Promise<StyleMap> => {
+export const visua = (options?: VisuaOptions): StyleMap => {
     let path = DEFAULT_IDENTITY_FILE_PATH;
     let strict = false;
     if (options) {
@@ -103,11 +100,5 @@ export const visua = async (options?: VisuaOptions): Promise<StyleMap> => {
             strict = options.strict;
         }
     }
-
-    await parseIdentityFiles(path, strict);
-    return null;
-    /*return await new AstCssomConverter(ast, {
-        identityDir: fsPath.dirname(path),
-        strict: options.strict,
-    }).getStyleMap();*/
+    return new Parser(path, strict).parse();
 };
