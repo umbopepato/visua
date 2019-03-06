@@ -1,9 +1,10 @@
-import * as cssTree from 'css-tree';
-import AstCssomConverter from './cssom/ast-cssom-converter';
+import {Atrule, AtrulePrelude, CssNode, CssNodeCommon, parse, SyntaxParseError, toPlainObject, walk} from 'css-tree';
+import {CssNodeType, ParseError, parseIdentityFiles} from './cssom/ast-cssom-converter';
 import * as fsPath from 'path';
 import * as fs from 'fs';
 import {StyleMap} from './cssom/style-map';
 import {logger} from './logger';
+import {removeQuotes, warnAt} from './util';
 
 export * from './plugin';
 export * from './cssom/style-map';
@@ -89,34 +90,24 @@ export interface VisuaOptions {
  */
 export const visua = async (options?: VisuaOptions): Promise<StyleMap> => {
     let path = DEFAULT_IDENTITY_FILE_PATH;
-    if (options && options.path != null) {
-        if (fs.lstatSync(options.path).isDirectory()) {
-            path = fsPath.join(options.path, DEFAULT_IDENTITY_FILE_NAME);
-        } else {
-            path = options.path;
+    let strict = false;
+    if (options) {
+        if (options.path != null) {
+            if (fs.lstatSync(options.path).isDirectory()) {
+                path = fsPath.join(options.path, DEFAULT_IDENTITY_FILE_NAME);
+            } else {
+                path = options.path;
+            }
+        }
+        if (options.strict != null) {
+            strict = options.strict;
         }
     }
-    let file;
-    try {
-        file = fs.readFileSync(path, {encoding: 'UTF-8'});
-    } catch (e) {
-        throw new TypeError(`Failed to load identity file ${path}`);
-    }
-    const ast = cssTree.parse(file, {
-        parseCustomProperty: true,
-        onParseError: error => {
-            if (options.strict) {
-                throw error;
-            } else {
-                logger.warn(error.formattedMessage || error);
-            }
-        },
-        positions: true,
-        filename: path,
-    });
-    return await new AstCssomConverter(ast, {
+
+    await parseIdentityFiles(path, strict);
+    return null;
+    /*return await new AstCssomConverter(ast, {
         identityDir: fsPath.dirname(path),
         strict: options.strict,
-    }).getStyleMap();
+    }).getStyleMap();*/
 };
-

@@ -1,5 +1,4 @@
-@import 'colors.css';
-
 :root {
-    --spacer: 4px;
+    --hey: ciao;
+    --spacer: var(--ciao, var(--hey, #FFFFFF));
 }

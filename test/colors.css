@@ -1,5 +1,5 @@
 :root {
-    --primary-color: #00FF00;
+    --primary-color: calc(var(--spacer) * 2);
     --accent-color: #FF0000;
     --background-color: #FFFFFF;
 }

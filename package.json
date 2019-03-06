@@ -25,6 +25,7 @@
   "homepage": "https://github.com/umbopepato/visua#readme",
   "devDependencies": {
     "@types/chai": "^4.1.7",
+    "@types/css-tree": "^1.0.0",
     "@types/mocha": "^5.2.6",
     "@types/node": "^11.9.6",
     "chai": "^4.2.0",

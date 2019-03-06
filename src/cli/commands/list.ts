@@ -7,7 +7,7 @@ export const list = async (options) => {
             path: options.parent.path,
             strict: options.parent.strict,
         });
-        styleMap.print();
+        //styleMap.print();
     } catch (e) {
         logger.error(e.formattedMessage || e.stack || e);
     }

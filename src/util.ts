@@ -1,4 +1,5 @@
 import {logger} from './logger';
+import {CssLocation} from 'css-tree';
 
 export const removeLeadingDashes = (property: string): string => {
     return property.replace(/^-+/, '');
@@ -28,6 +29,6 @@ export const mod = (num: number, mod: number) => {
 
 export const toRad = (angle: number): number => angle * Math.PI / 180;
 
-export const warnAt = (message: string, location: { source: string, start: { line: number, column: string } }) => {
+export const warnAt = (message: string, location: CssLocation) => {
     logger.warn(`${message}\n    at ${location.source}:${location.start.line}:${location.start.column}`);
 };
