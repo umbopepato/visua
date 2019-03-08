@@ -20,7 +20,7 @@ Depending on the execution environment of your project you may want to install V
 $ npm i -g visua
 ```
 
-or locally as a dev dependency, (i.e. if it has to run in CI/CD pipelines):
+or locally as a dev dependency (i.e. if it has to run in CI/CD pipelines):
 
 ```bash
 $ npm i -D visua
