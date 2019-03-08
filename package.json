@@ -1,7 +1,7 @@
 {
   "name": "visua",
   "version": "0.0.1",
-  "description": "A powerful brand identity automation tool.",
+  "description": "A tool to describe brand design systems using standard CSS",
   "main": "dist/visua.js",
   "scripts": {
     "test": "nyc mocha -r ts-node/register test/**/*.spec.ts",

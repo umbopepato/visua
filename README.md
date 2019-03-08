@@ -4,7 +4,8 @@
 
 A tool to describe brand design systems using standard CSS
 
-> 🛠 This package is still in development: use carefully until 1.0 release
+> 🛠 This package is still in development: use carefully until 1.0 release.  
+> Feedbacks and contributions are welcome!
 
 ## Documentation
 
