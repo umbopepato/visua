@@ -6,10 +6,11 @@
     "sourceMap": true,
     "moduleResolution": "node",
     "noEmitOnError": false,
+    "declaration": true,
     "outDir": "dist"
   },
   "include": [
-    "src/**/*"
+    "src/**/*.ts"
   ],
   "exclude": [
     "test/**/*.spec.ts"

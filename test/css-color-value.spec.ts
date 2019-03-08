@@ -1,6 +1,6 @@
 import {expect} from 'chai';
-import {CSSHexColor, CSSHslaColor, CSSRgbaColor} from '../src/css-color-value';
-import {CSS} from '../src/css';
+import {CSSHexColor, CSSHslaColor, CSSRgbaColor} from '../src/cssom/css-color-value';
+import {CSS} from '../src/cssom/css';
 
 describe('CSSHexColor', () => {
 
