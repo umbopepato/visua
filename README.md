@@ -58,7 +58,7 @@ $ npm i visua-bootstrap
 and run it with the CLI (from your project root folder):
 
 ```bash
-$ visua run visua-bootstrap
+$ visua run bootstrap
 ```
 
 ## License
