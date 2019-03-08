@@ -18,7 +18,7 @@
   },
   "types": "dist/visua.d.ts",
   "author": "Umberto Pepato",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/umbopepato/visua/issues"
   },

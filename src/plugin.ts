@@ -45,7 +45,7 @@ export abstract class Plugin {
      * @param styleMap The StyleMap Visua generated from the loaded identity css files
      * @param options The initialized plugin options
      */
-    abstract run(styleMap: StyleMap, options: {[key: string]: any});
+    abstract run(styleMap: StyleMap, options: OptionsMap);
 
 }
 
