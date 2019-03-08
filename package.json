@@ -7,7 +7,8 @@
     "test": "nyc mocha -r ts-node/register test/**/*.spec.ts",
     "build": "tsc",
     "build:watch": "tsc -w",
-    "build:clean": "rm -rf dist && npm run build"
+    "build:clean": "rm -rf dist && npm run build",
+    "prepublishOnly": "npm run build:clean && npm run test"
   },
   "bin": {
     "visua": "dist/cli/visua-cli.js"
@@ -45,6 +46,9 @@
     "table": "^5.2.3",
     "winston": "^3.2.1"
   },
+  "files": [
+    "dist"
+  ],
   "nyc": {
     "extension": [
       ".ts"
