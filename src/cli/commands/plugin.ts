@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as rimraf from 'rimraf';
 import * as path from 'path';
 import chalk from 'chalk';
+import {renderTemplateFile} from 'template-file';
 
 const asyncExec = util.promisify(exec);
 
@@ -41,6 +42,9 @@ export const plugin = async () => {
     pkg.author = author;
     pkg.repository = repository;
     fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 4));
+    const readmePath = path.join(pluginDir, 'README.md');
+    console.log('Writing README');
+    fs.writeFileSync(readmePath, await renderTemplateFile(readmePath, {pluginName, displayName, description}));
     console.log('Removing versioning\n');
     rimraf(path.join(pluginDir, '.git'), () => {
         console.log(`Project succesfully created in folder ${pluginName}!`);
