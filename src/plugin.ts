@@ -91,7 +91,7 @@ export function templatel(strings: TemplateStringsArray, ...values: any[]) {
         }
     }
     const lineStrings: string[] = lines.filter(line => line.every(item => item != null))
-        .map(line => line.join());
+        .map(line => line.join(''));
     lineStrings.forEach(line => {
         const m = line.match(/^(\s+)\S+/);
         if (m) {
