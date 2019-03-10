@@ -59,7 +59,6 @@ import {
     CSSStepsTimingFunction,
     CSSTimingFunctionValue,
 } from './css-timing-function-value';
-import {visua} from '../visua';
 import {
     CSSGradientStep,
     CSSLinearGradient,
