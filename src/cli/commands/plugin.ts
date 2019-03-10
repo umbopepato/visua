@@ -44,7 +44,7 @@ export const plugin = async () => {
     fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 4));
     const readmePath = path.join(pluginDir, 'README.md');
     console.log('Writing README');
-    fs.writeFileSync(readmePath, await renderTemplateFile(readmePath, {pluginName, displayName, description}));
+    fs.writeFileSync(readmePath, await renderTemplateFile(readmePath, {slug, pluginName, displayName, description}));
     console.log('Removing versioning\n');
     rimraf(path.join(pluginDir, '.git'), () => {
         console.log(`Project succesfully created in folder ${pluginName}!`);
