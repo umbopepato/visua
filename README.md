@@ -61,6 +61,10 @@ and run it with the CLI (from your project root folder):
 $ visua run bootstrap
 ```
 
+## Credits
+
+`templatel` and `template` string literal tags are modified versions of [dedent](https://github.com/dmnd/dedent).
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
