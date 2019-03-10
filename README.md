@@ -63,7 +63,8 @@ $ visua run bootstrap
 
 ## Credits
 
-`templatel` and `template` string literal tags are modified versions of [dedent](https://github.com/dmnd/dedent).
+`templatel` and `template` string literal tags are modified versions of [dedent](https://github.com/dmnd/dedent) by
+Desmond Brand (more in [LICENSE](LICENSE)).
 
 ## License
 
