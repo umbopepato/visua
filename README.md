@@ -15,17 +15,9 @@ See [visua.io](https://visua.io/) for guidance and the full documentation.
 
 Be sure to have a recent version of [node.js](https://nodejs.org) and [npm](https://npmjs.org) installed.
 
-Depending on the execution environment of your project you may want to install Visua globally:
-
-```bash
-$ npm i -g visua
-```
-
-or locally as a dev dependency (i.e. if it has to run in CI/CD pipelines):
-
-```bash
-$ npm i -D visua
-```
+ ```bash
+ $ npm i -D visua
+ ```
 
 ## Identity files
 
@@ -58,7 +50,7 @@ $ npm i visua-bootstrap
 and run it with the CLI (from your project root folder):
 
 ```bash
-$ visua run bootstrap
+$ npx visua run bootstrap
 ```
 
 ## Credits
