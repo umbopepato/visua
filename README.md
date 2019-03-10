@@ -1,4 +1,4 @@
-<img src="logo.svg" width="150" height="150">
+<img src="logo.png" width="150" height="150">
 
 # Visua
 
