@@ -1,6 +1,6 @@
 {
   "name": "visua",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A tool to describe brand design systems using standard CSS",
   "main": "dist/visua.js",
   "scripts": {
