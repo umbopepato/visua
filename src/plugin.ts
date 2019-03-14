@@ -19,7 +19,7 @@ export abstract class Plugin {
     /**
      * Plugin command line options map
      *
-     * If your plugin uses some options you should override this accessor to return a non-empty `OptionsMap`.
+     * If your plugin uses some options you should override this property to return a non-empty `OptionsMap`.
      * For example if your plugin accepts two options:
      *
      * - `optOne`, a boolean flag
@@ -27,17 +27,13 @@ export abstract class Plugin {
      *
      * The corresponding implementation of options would be:
      * ```typescript
-     * static get options(): OptionsMap {
-     *     return {
-     *         optOne: Boolean,
-     *         optTwo: (value: string) => value.split(','),
-     *     };
-     * }
+     * static options: OptionsMap = {
+     *     optOne: Boolean,
+     *     optTwo: (value: string) => value.split(','),
+     * };
      * ```
      */
-    static get options(): OptionsMap {
-        return {};
-    };
+    static options: OptionsMap = {};
 
     /**
      * The entry point of the plugin called by the CLI after the options have been initialized
@@ -45,7 +41,7 @@ export abstract class Plugin {
      * @param styleMap The StyleMap Visua generated from the loaded identity css files
      * @param options The initialized plugin options
      */
-    abstract run(styleMap: StyleMap, options: {[key: string]: any});
+    abstract run(styleMap: StyleMap, options: { [key: string]: any });
 
 }
 
@@ -133,7 +129,7 @@ export function template(strings: TemplateStringsArray, ...values: Array<string>
             result += values[i];
         }
     }
-    const lines = result.split("\n");
+    const lines = result.split('\n');
     let mindent: number | null = null;
     lines.forEach(l => {
         let m = l.match(/^(\s+)\S+/);
@@ -149,10 +145,10 @@ export function template(strings: TemplateStringsArray, ...values: Array<string>
 
     if (mindent !== null) {
         const m = mindent;
-        result = lines.map(l => l[0] === " " ? l.slice(m) : l).join("\n");
+        result = lines.map(l => l[0] === ' ' ? l.slice(m) : l).join('\n');
     }
 
     return result
         .trim()
-        .replace(/\\n/g, "\n");
+        .replace(/\\n/g, '\n');
 }
