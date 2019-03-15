@@ -12,6 +12,11 @@ export type ValueInitializer = (value: string) => any;
 export type OptionsMap = { [key: string]: Function | ValueInitializer };
 
 /**
+ * The `string` to `any` map of parsed command line options
+ */
+export type Options = { [key: string]: any };
+
+/**
  * A base class to create Visua CLI plugins
  */
 export abstract class Plugin {
@@ -41,7 +46,7 @@ export abstract class Plugin {
      * @param styleMap The StyleMap Visua generated from the loaded identity css files
      * @param options The initialized plugin options
      */
-    abstract run(styleMap: StyleMap, options: { [key: string]: any });
+    abstract run(styleMap: StyleMap, options: Options);
 
 }
 
