@@ -4,6 +4,8 @@
 
 A tool to describe brand design systems using standard CSS
 
+![npm version](https://img.shields.io/npm/v/visua.svg) ![Build](https://img.shields.io/circleci/project/github/umbopepato/visua/master.svg)
+
 > 🛠 This package is still in development: use carefully until a 1.0 release.  
 > Feedback and contributions are welcome!
 
