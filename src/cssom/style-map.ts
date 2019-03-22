@@ -14,7 +14,7 @@ export interface StyleMapEntry {
  */
 export class StyleMap {
 
-    private map = {};
+    private map = new Map();
 
     /**
      * Gets the CSSStyleValue given the corresponding property name
@@ -24,8 +24,8 @@ export class StyleMap {
      */
     get(property: string): CSSStyleValue {
         let resolvedProperty = removeLeadingDashes(property);
-        if (!this.map.hasOwnProperty(resolvedProperty)) return;
-        return this.map[resolvedProperty];
+        if (!this.map.has(resolvedProperty)) return;
+        return this.map.get(resolvedProperty);
     }
 
     /**
@@ -51,11 +51,12 @@ export class StyleMap {
      * @returns An array of StyleMapEntries
      */
     getSimilar(property: RegExp): StyleMapEntry[] {
-        let foundKeys = Object.keys(this.map).filter(k => k.match(property) != null);
-        return foundKeys.map(k => <StyleMapEntry>{
-            name: k,
-            value: this.map[k],
-        });
+        return Array.from(this.map.entries())
+            .filter(entry => entry[0].match(property) != null)
+            .map(entry => <StyleMapEntry>{
+                name: entry[0],
+                value: entry[1],
+            });
     }
 
     /**
@@ -65,10 +66,7 @@ export class StyleMap {
      * @param value The value of the property
      */
     set(property: string, value: CSSStyleValue) {
-        if (this.map.hasOwnProperty(property)) {
-            logger.warn(`Variable ${property} has been defined more times`);
-        }
-        this.map[property] = value;
+        this.map.set(property, value);
     }
 
     /**
@@ -77,9 +75,7 @@ export class StyleMap {
      * @param callbackFn The callback to run against each property
      */
     forEach(callbackFn: (property: string, value: CSSStyleValue) => void) {
-        Object.keys(this.map).forEach(key => {
-            callbackFn(key, this.map[key]);
-        });
+        this.map.forEach((value, key) => callbackFn(key, value));
     }
 
     /**
@@ -89,9 +85,8 @@ export class StyleMap {
         const header = [chalk.bold('Variable'), chalk.bold('CSSStyleValue instance'), chalk.bold('Value')];
         logger.info(`StyleMap:\n${table([
             header,
-            ...Object
-            .entries(this.map)
-            .map(e => [`--${e[0]}`, e[1].constructor.name, e[1]] as string[])
+            ...Array.from(this.map.entries())
+                .map(e => [`--${e[0]}`, e[1].constructor.name, e[1]] as string[]),
         ], {
             border: getBorderCharacters('norc'),
         })}`);
