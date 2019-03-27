@@ -29,7 +29,7 @@ of a brand identity in the form of CSS variables. Something like this:
 The package itself consists of a set of tools to work with this type of files, from parsing them to running code
 generation tasks.
 
-#### Install
+## Install
 
 If you want to use visua API in your node project, install it as a normal dependency:
 
@@ -53,7 +53,7 @@ If you plan to use it to only run code generation plugins, consider installing i
 $ npm i -D visua
 ```
 
-#### Running plugins
+## Running plugins
 
 Plugins are small tasks run by the CLI to perform operations on the parsed identity files such as generating themes
 and assets. `visua-bootstrap` is a basic plugin that maps a set of common variables to bootstrap scss variables and
