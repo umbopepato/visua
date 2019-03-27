@@ -43,7 +43,7 @@ and use it in your module:
 import {visua} from 'visua';
 
 const styleMap = visua({
-    path: 'identity/'
+    path: 'identity/',
 });
 ```
 
