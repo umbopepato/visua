@@ -58,8 +58,9 @@ $ npm i -D visua
 ## Running plugins
 
 Plugins are small tasks run by the CLI to perform operations on the parsed identity files such as generating themes
-and assets. `visua-bootstrap` is a basic plugin that maps a set of common variables to bootstrap scss variables and
-creates for you a `variables.scss` file that you can later use to build your [themed bootstrap](https://getbootstrap.com/docs/4.0/getting-started/theming).
+and assets. [`visua-bootstrap`](https://github.com/umbopepato/visua-bootstrap) is a basic plugin that maps a set of
+common variables to bootstrap scss variables and creates for you a `variables.scss` file that you can later use to build
+your [themed bootstrap](https://getbootstrap.com/docs/4.0/getting-started/theming).
 
 Install it by running:
 
@@ -69,7 +70,7 @@ $ npm i -D visua-bootstrap
 # Visua plugins are npm packages whose names start with visua-
 ```
 
-Now run the plugin (be sure to be in the same directory where `identity.css` is, otherwise `cd` there):
+Create an identity file named `identity.css` in the project folder and run the plugin:
 
 ```bash
 $ npx visua run bootstrap
