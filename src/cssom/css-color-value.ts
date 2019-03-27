@@ -7,6 +7,9 @@ import {map, mod, restrict} from '../util';
 // in function parameters is considered an error
 export abstract class CSSColorValue extends CSSStyleValue {
 
+    /**
+     * @hidden
+     */
     public static x11ColorsMap = {
         aliceblue: '#f0f8ff',
         antiquewhite: '#faebd7',

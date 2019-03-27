@@ -33,7 +33,7 @@ export const plugin = async () => {
     console.log('Creating plugin directory');
     fs.mkdirSync(pluginDir);
     console.log('Cloning starter template');
-    await asyncExec(`git clone https://github.com/umbopepato/visua-plugin-template ${pluginDir}`);
+    await asyncExec(`git clone https://github.com/umbopepato/visua-plugin-template --depth 1 ${pluginDir}`);
     console.log('Writing package.json');
     const packagePath = path.join(pluginDir, 'package.json');
     const pkg = require(packagePath);
