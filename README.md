@@ -42,9 +42,9 @@ $ npm i visua
 and use it in your module:
 
 ```typescript
-import {visua} from 'visua';
+import {visua, StyleMap} from 'visua';
 
-const styleMap = visua({
+const styleMap: StyleMap = visua({
     path: 'identity/',
 });
 ```
