@@ -19,6 +19,10 @@ export class StyleMap {
     /**
      * Gets the CSSStyleValue given the corresponding property name
      *
+     * ```typescript
+     * const primaryColor: CSSColorValue = styleMap.get('primary-color');
+     * ```
+     *
      * @param property The name of the property (prepending `--` is not necessary but allowed)
      * @returns The corresponding style value
      */
@@ -31,8 +35,19 @@ export class StyleMap {
     /**
      * Gets the CSSStyleValues corresponding to the given array of property names
      *
+     * ```typescript
+     * const values = styleMap.getAll(['primary-color', 'accent-color']);
+     *
+     * // In the values Object the keys correspond to the names of the variables
+     * // found in the styleMap. These are converted from hyphen-case to camel-case
+     * // so you don't have to use the bracket notation to access values and can
+     * // use destructuring declarations:
+     *
+     * const {primaryColor, secondaryColor} = styleMap.getAll(['primary-color', 'accent-color']);
+     * ```
+     *
      * @param properties The array of property names
-     * @returns The Object of found properties (the names are converted from hyphen-case to camel-case to allow for destructuring declarations)
+     * @returns The Object of found properties
      */
     getAll(properties: string[]): { [key: string]: CSSStyleValue } {
         let entries = {};
@@ -47,16 +62,35 @@ export class StyleMap {
     /**
      * Gets the CSSStyleValues of the properties matching the given regex
      *
-     * @param property A regular expression to ls against property names
+     * ```typescript
+     * const values = styleMap.getSimilar(/color$/);
+     *
+     * // All the variables with names ending with "color"
+     * ```
+     *
+     * @param regExp A regular expression to ls against property names
      * @returns An array of StyleMapEntries
      */
-    getSimilar(property: RegExp): StyleMapEntry[] {
+    getSimilar(regExp: RegExp): StyleMapEntry[] {
         return Array.from(this.map.entries())
-            .filter(entry => entry[0].match(property) != null)
-            .map(entry => <StyleMapEntry>{
-                name: entry[0],
-                value: entry[1],
-            });
+            .filter(entry => entry[0].match(regExp) != null)
+            .map(toStyleMapEntry);
+    }
+
+    /**
+     * Gets the CSSStyleValues of the properties extending `types`
+     *
+     * ```typescript
+     * const values = styleMap.getByType(CSSHexColor, CSSRgbaColor);
+     * ```
+     *
+     * @param types The instances of CSSStyleValue
+     * @returns An array of StyleMapEntries
+     */
+    getByType<T extends typeof CSSStyleValue>(...types: T[]) {
+        return Array.from(this.map.entries())
+            .filter(entry => types.some(type => entry[1] instanceof type))
+            .map(toStyleMapEntry);
     }
 
     /**
@@ -93,3 +127,8 @@ export class StyleMap {
     }
 
 }
+
+const toStyleMapEntry = entry => <StyleMapEntry>{
+    name: entry[0],
+    value: entry[1],
+};
