@@ -2,7 +2,7 @@
 
 # Visua
 
-A tool to describe brand design systems using standard CSS
+A tool to describe brand identities using CSS
 
 ![npm version](https://img.shields.io/npm/v/visua.svg) ![Build](https://img.shields.io/circleci/project/github/umbopepato/visua/master.svg)
 
@@ -20,8 +20,8 @@ of a brand identity in the form of CSS variables. Something like this:
 
 ```css
 :root {
-    --primary-color: #EFEFEF;
-    --secondary-color: #4F4F4F;
+    --primary-color: #276FFF;
+    --secondary-color: #00DBFF;
     --font-family: 'Raleway', sans-serif;
     --headings-font-family: 'Montserrat', sans-serif;
     --spacer: 1.2em;
