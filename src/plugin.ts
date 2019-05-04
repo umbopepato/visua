@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as fsPath from 'path';
+import * as mkdirp from 'mkdirp';
 import {StyleMap} from './cssom/style-map';
 
 /**
@@ -157,3 +160,36 @@ export function template(strings: TemplateStringsArray, ...values: Array<string>
         .trim()
         .replace(/\\n/g, '\n');
 }
+
+/**
+ * Writes `content` to the filesystem in the file at `path`, creating
+ * the ancestors if necessary
+ *
+ * @param path The path to the file
+ * @param content The textual content of the file
+ */
+export const buildFile = (path: string, content: string): Promise<void> => new Promise<void>((resolve, reject) => {
+    mkdirp(fsPath.dirname(path), error => {
+        if (error) {
+            reject(error);
+        }
+        fs.writeFile(path, content, error => {
+            if (error) {
+                reject(error);
+            }
+            resolve();
+        });
+    });
+});
+
+/**
+ * Writes synchronously `content` to the filesystem in the file at `path`,
+ * creating the ancestors if necessary
+ *
+ * @param path The path to the file
+ * @param content The textual content of the file
+ */
+export const buildFileSync = (path: string, content: string) => {
+    mkdirp.sync(fsPath.dirname(path));
+    fs.writeFileSync(path, content);
+};
