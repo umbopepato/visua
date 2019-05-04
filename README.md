@@ -6,6 +6,7 @@ A tool to describe brand identities using CSS
 
 ![npm version](https://img.shields.io/npm/v/visua.svg)
 ![Build](https://img.shields.io/circleci/project/github/umbopepato/visua/master.svg)
+[![Coverage Status](https://coveralls.io/repos/github/umbopepato/visua/badge.svg?branch=master)](https://coveralls.io/github/umbopepato/visua?branch=master)
 
 > 🛠 This package is still in development: use carefully until a 1.0 release.  
 > Feedback and contributions are welcome!
