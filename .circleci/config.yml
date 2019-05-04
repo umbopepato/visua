@@ -13,3 +13,6 @@ jobs:
           paths:
             - ./node_modules
       - run: npm run test
+      - run:
+          when: on_success
+          command: npm run coverage
