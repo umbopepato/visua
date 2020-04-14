@@ -1,4 +1,4 @@
-import {CSS, CSSBaseType, CSSUnit} from './css';
+import {CSSBaseType, CSSUnit} from './css';
 import {CSSUnitValue} from './css-unit-value';
 import {CSSStyleValue} from './css-style-value';
 import {map, mod, restrict} from '../util';

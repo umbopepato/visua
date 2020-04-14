@@ -2,7 +2,7 @@ import {CSSStyleValue} from './css-style-value';
 import {CSSKeywordsValue, CSSKeywordValue} from './css-keyword-value';
 import {CSSUnitValue} from './css-unit-value';
 import {CSSColorValue} from './css-color-value';
-import {CSS, CSSBaseType, CSSUnit} from './css';
+import {CSS, CSSBaseType} from './css';
 import {CSSPositionValue} from './css-position-value';
 
 export class CSSGradientStep {
@@ -34,8 +34,11 @@ export class CSSLinearGradient extends CSSGradientValue {
         };
     }
 
-    constructor(public steps: CSSGradientStep[], public direction: CSSKeywordsValue | CSSUnitValue = new CSSUnitValue(0, CSSUnit.deg)) {
+    constructor(public steps: CSSGradientStep[], public direction: CSSKeywordsValue | CSSUnitValue = CSS.deg(0)) {
         super();
+        if (!steps || steps.length === 0) {
+            throw new TypeError('Failed to construct CSSLinearGradient: At least one step is required');
+        }
         if (direction instanceof CSSUnitValue) {
             if (direction.unit.baseType !== CSSBaseType.angle) {
                 throw new TypeError('Failed to construct CSSLinearGradient: Argument direction must be of type <angle>');
@@ -54,7 +57,9 @@ export class CSSLinearGradient extends CSSGradientValue {
     }
 
     toString() {
-        return `linear-gradient(${this.direction == null || this.direction === CSS.deg(0) ? '' : `${this.direction}, `}${this.steps.map(s => s.toString()).join(', ')})`;
+        return `linear-gradient(${this.direction == null ||
+        (this.direction instanceof CSSUnitValue && this.direction.equals(CSS.deg(0))) ? '' :
+            `${this.direction}, `}${this.steps.map(s => s.toString()).join(', ')})`;
     }
 
 }
@@ -79,13 +84,18 @@ export class CSSRadialGradient extends CSSGradientValue {
     public size: CSSUnitValue | CSSKeywordValue | CSSUnitValue[];
     public shape: CSSKeywordValue;
 
-    constructor(public steps: CSSGradientStep[], dimensions: CSSRadialGradientDimensions) {
+    constructor(public steps: CSSGradientStep[], dimensions: CSSRadialGradientDimensions = {
+        position: new CSSPositionValue(new CSSKeywordValue('center')),
+        size: new CSSKeywordValue('farthest-corner'),
+    }) {
         super();
-        this.position = dimensions.position || new CSSPositionValue([new CSSKeywordValue('center')]);
-        this.size = dimensions.size || new CSSKeywordValue('farthest-corner');
+        if (!steps || steps.length === 0) {
+            throw new TypeError('Failed to construct CSSRadialGradient: At least one step is required');
+        }
+        this.position = dimensions.position;
+        this.size = dimensions.size;
         this.shape = dimensions.shape || (this.size instanceof CSSUnitValue || this.size instanceof CSSKeywordValue ? new CSSKeywordValue('circle') : new CSSKeywordValue('ellipse'));
         if (this.shape.value === 'circle' && Array.isArray(this.size)) {
-            console.log(dimensions.shape);
             throw new TypeError('Failed to construct CSSRadialGradient: A circle <shape> only accepts <length> or <identifier> as size');
         }
         if (this.shape.value === 'ellipse' && this.size instanceof CSSUnitValue) {
@@ -122,6 +132,9 @@ export class CSSRepeatingRadialGradient extends CSSGradientValue {
 
     constructor(public gradient: CSSRadialGradient) {
         super();
+        if (!gradient) {
+            throw new TypeError('Failed to construct CSSRepeatingRadialGradient: A gradient is required');
+        }
     };
 
 }

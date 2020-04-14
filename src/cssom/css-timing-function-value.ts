@@ -44,7 +44,7 @@ export class CSSCubicBezierTimingFunction extends CSSTimingFunctionValue {
     }
 
     toString() {
-        return `cubic-bezier(${this.x1}, ${this.y1}, ${this.x2}, ${this.y2})`;
+        return `${super.toString()}(${this.x1}, ${this.y1}, ${this.x2}, ${this.y2})`;
     }
 
 }
@@ -57,7 +57,7 @@ export class CSSStepsTimingFunction extends CSSTimingFunctionValue {
     }
 
     toString() {
-        return `steps(${this.steps}${this.position === CSSStepPosition.end ? '' : `, ${this.position}`})`;
+        return `${super.toString()}(${this.steps}${this.position === CSSStepPosition.end ? '' : `, ${this.position}`})`;
     }
 
 }
@@ -70,7 +70,7 @@ export class CSSFramesTimingFunction extends CSSTimingFunctionValue {
     }
 
     toString() {
-        return `frames(${this.frames})`;
+        return `${super.toString()}(${this.frames})`;
     }
 
 }

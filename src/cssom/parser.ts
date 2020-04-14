@@ -776,7 +776,7 @@ export class Parser {
     private convertFont(node) {
         let i = 0, beforeFamily: boolean = true;
         let children = node.children.filter(removeWhiteSpaces());
-        let components: CSSFontComponents = {family: null};
+        let components: CSSFontComponents = {size: null, family: null};
         while (beforeFamily && i < children.length) {
             let child = children[i];
             switch (child.type) {
@@ -855,7 +855,11 @@ export class Parser {
         let shadows = splitf(children, c => c.type === CssNodeType.Operator && c.value === '/');
         let layers: CSSShadow[] = [];
         shadows.forEach(s => {
-            let components: CSSShadowComponents = {color: null};
+            let components: CSSShadowComponents = {
+                offsetX: null,
+                offsetY: null,
+                color: null,
+            };
             s.forEach(c => {
                 let value = this.convertAstValue(c);
                 if (value instanceof CSSKeywordValue && value.value === 'inset') {

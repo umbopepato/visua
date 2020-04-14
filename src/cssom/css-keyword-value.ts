@@ -7,7 +7,7 @@ export class CSSKeywordsValue extends CSSStyleValue {
     }
 
     toString() {
-        return this.keywords.map(c => c.toString()).join(' ');
+        return this.keywords.join(' ');
     }
 
 }

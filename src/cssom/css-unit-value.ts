@@ -1,4 +1,4 @@
-import {CSS, CSSUnit, CSSUnitData} from './css';
+import {CSS, CSSUnitData} from './css';
 import {CSSNumericValue, CSSUnitMap} from './css-numeric-value';
 
 export class CSSUnitValue extends CSSNumericValue {

@@ -10,7 +10,7 @@ export class CSSBlurFilter extends CSSFilter {
     constructor(public radius: CSSUnitValue) {
         super();
         if (radius.unit.baseType !== CSSBaseType.length) {
-            throw new TypeError('Failed to construct CSSBlurFilter: Argument amount must be of type <length>');
+            throw new TypeError('Failed to construct CSSBlurFilter: Argument radius must be of type <length>');
         }
     }
 
@@ -25,7 +25,7 @@ export class CSSBrightnessFilter extends CSSFilter {
     constructor(public value: CSSUnitValue) {
         super();
         if (value.unit.name !== CSSUnit.percent) {
-            throw new TypeError('Failed to construct CSSBrightnessFilter: Argument amount must be of type <percentage>');
+            throw new TypeError('Failed to construct CSSBrightnessFilter: Argument value must be of type <percentage>');
         }
     }
 
@@ -40,7 +40,7 @@ export class CSSContrastFilter extends CSSFilter {
     constructor(public value: CSSUnitValue) {
         super();
         if (value.unit.name !== CSSUnit.percent) {
-            throw new TypeError('Failed to construct CSSContrastFilter: Argument amount must be of type <percentage>');
+            throw new TypeError('Failed to construct CSSContrastFilter: Argument value must be of type <percentage>');
         }
     }
 
@@ -54,6 +54,9 @@ export class CSSDropShadowFilter extends CSSFilter {
 
     constructor(public value: CSSBoxShadowValue) {
         super();
+        if (!(value instanceof CSSBoxShadowValue)) {
+            throw new TypeError('Failed to construct CSSDropShadowFilter: value is not a CSSBoxShadowValue');
+        }
     }
 
     toString(): string {
@@ -147,7 +150,7 @@ export class CSSSepiaFilter extends CSSFilter {
     }
 
     toString(): string {
-        return `saturate(${this.amount})`;
+        return `sepia(${this.amount})`;
     }
 
 }
@@ -156,6 +159,9 @@ export class CSSFilterValue extends CSSStyleValue {
 
     constructor(public filters: CSSFilter[]) {
         super();
+        if (!filters || filters.length === 0) {
+            throw new TypeError('Failed to construct CSSFilterValue: At least one filter is required')
+        }
     }
 
     toString(): string {

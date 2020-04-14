@@ -6,8 +6,8 @@ import {CSS} from './css';
 export interface CSSShadowComponents {
 
     inset?: boolean;
-    offsetX?: CSSUnitValue;
-    offsetY?: CSSUnitValue;
+    offsetX: CSSUnitValue;
+    offsetY: CSSUnitValue;
     blurRadius?: CSSUnitValue;
     spreadDistance?: CSSUnitValue;
     color: CSSColorValue;
@@ -23,14 +23,14 @@ export class CSSShadow {
     public spreadDistance: CSSUnitValue;
     public color: CSSColorValue;
     private deafultLength = CSS.number(0);
-    
+
     constructor(components: CSSShadowComponents) {
         if (components.blurRadius != null && components.blurRadius.value < 0) {
             throw new TypeError('Failed to construct CSSShadow: Component blurRadius must be positive');
         }
         this.inset = components.inset || false;
-        this.offsetX = components.offsetX || this.deafultLength;
-        this.offsetY = components.offsetY || this.deafultLength;
+        this.offsetX = components.offsetX;
+        this.offsetY = components.offsetY;
         this.blurRadius = components.blurRadius || this.deafultLength;
         this.spreadDistance = components.spreadDistance || this.deafultLength;
         this.color = components.color;
@@ -48,6 +48,9 @@ export class CSSBoxShadowValue extends CSSStyleValue {
 
     constructor(public layers: CSSShadow[]) {
         super();
+        if (!layers || layers.length === 0) {
+            throw new TypeError('Failed to construct CSSBoxShadowValue: At least one shadow layer is required');
+        }
     }
 
     toString(): string {

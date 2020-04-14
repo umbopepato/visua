@@ -18,6 +18,9 @@ export class CSSFontFamilyValue extends CSSStyleValue {
 
     constructor(public fonts: Array<CSSKeywordValue | CSSStringValue>) {
         super();
+        if (!fonts || fonts.length === 0) {
+            throw new TypeError('Failed to construct CSSFontFamilyValue: At least one font family name is required');
+        }
     }
 
     toString(): string {

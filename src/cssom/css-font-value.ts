@@ -5,13 +5,13 @@ import {CSSFontFamilyValue} from './css-font-family-value';
 
 export interface CSSFontComponents {
 
+    size: CSSUnitValue | CSSKeywordValue;
+    family: CSSFontFamilyValue;
     style?: CSSUnitValue | CSSKeywordValue;
     variant?: CSSKeywordValue;
     weight?: CSSUnitValue | CSSKeywordValue;
     stretch?: CSSKeywordValue;
-    size?: CSSUnitValue | CSSKeywordValue;
     lineHeight?: CSSUnitValue | CSSKeywordValue;
-    family: CSSFontFamilyValue;
 
 }
 
@@ -78,6 +78,9 @@ export class CSSSystemFontValue extends CSSStyleValue {
 
     constructor(public font: string) {
         super();
+        if (!font) {
+            throw new TypeError('Failed to construct CSSSystemFontValue: A system font keyword is required');
+        }
     }
 
     toString(): string {
