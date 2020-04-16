@@ -9,6 +9,13 @@ describe('DOMMatrix', () => {
         });
     });
 
+    describe('isIdentity', () => {
+        it('should return true if the matrix is an identity matrix', () => {
+            expect(new DOMMatrix([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]).isIdentity).to.be.equal(true);
+            expect(new DOMMatrix([1, 0, 1, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]).isIdentity).to.be.equal(false);
+        });
+    });
+
     describe('#multiplySelf()', () => {
         it('should postmultiply other to the current matrix', () => {
             expect(new DOMMatrix([1, 2, 3, 4, 5, 6])

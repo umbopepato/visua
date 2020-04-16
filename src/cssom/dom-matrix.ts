@@ -2,12 +2,6 @@ import {toRad} from '../util';
 
 export class DOMMatrixReadOnly {
 
-    readonly b: number;
-    readonly a: number;
-    readonly c: number;
-    readonly d: number;
-    readonly e: number;
-    readonly f: number;
     readonly m11: number;
     readonly m12: number;
     readonly m13: number;
@@ -24,36 +18,43 @@ export class DOMMatrixReadOnly {
     readonly m42: number;
     readonly m43: number;
     readonly m44: number;
+    get a(): number { return this.m11; }
+    get b(): number { return this.m12; }
+    get c(): number { return this.m21; }
+    get d(): number { return this.m22; }
+    get e(): number { return this.m41; }
+    get f(): number { return this.m42; }
 
-    is2D: boolean;
+    get is2D(): boolean {
+        return this.m13 === 0 &&
+          this.m14 === 0 &&
+          this.m23 === 0 &&
+          this.m24 === 0 &&
+          this.m31 === 0 &&
+          this.m32 === 0 &&
+          this.m33 === 1 &&
+          this.m34 === 0 &&
+          this.m43 === 0 &&
+          this.m44 === 1;
+    }
 
     get isIdentity(): boolean {
-        return !(this.m12 ||
-            this.m13 ||
-            this.m14 ||
-            this.m21 ||
-            this.m23 ||
-            this.m24 ||
-            this.m31 ||
-            this.m32 ||
-            this.m34 ||
-            this.m41 ||
-            this.m42 ||
-            this.m43) && !!(
-            this.m11 &&
-            this.m22 &&
-            this.m33 &&
-            this.m44
-        );
+        for (let c = 1; c < 5; c++) {
+            for (let r = 1; r < 5; r++) {
+                const i = this[`m${c}${r}`];
+                if ((c === r && i !== 1) || (c !== r && i !== 0)) return false;
+            }
+        }
+        return true;
     }
 
     constructor(sequence: number[]) {
         if (sequence.length != 6 && sequence.length != 16) {
-            throw new TypeError('Failed to construct \'DOMMatrix\': Expecting 6 or 16 entries in sequence');
+            throw new RangeError('Failed to construct DOMMatrix: Expecting 6 or 16 entries in sequence');
         }
         for (let i = 0; i < sequence.length; i++) {
             if (typeof sequence[i] != 'number') {
-                throw new TypeError(`Failed to construct \'DOMMatrix\': Argument at index ${i} is not of type 'number'`);
+                throw new TypeError(`Failed to construct DOMMatrix: Argument at index ${i} is not of type 'number'`);
             }
         }
         if (sequence.length == 6) {
@@ -91,14 +92,6 @@ export class DOMMatrixReadOnly {
             this.m43 = sequence[14];
             this.m44 = sequence[15];
         }
-        this.a = this.m11;
-        this.b = this.m12;
-        this.c = this.m21;
-        this.d = this.m22;
-        this.e = this.m41;
-        this.f = this.m42;
-
-        this.is2D = sequence.length == 6;
     }
 
     translate(tx: number, ty: number, tz: number = 0): DOMMatrix {
@@ -197,12 +190,6 @@ export class DOMMatrixReadOnly {
 
 export class DOMMatrix extends DOMMatrixReadOnly {
 
-    b: number;
-    a: number;
-    c: number;
-    d: number;
-    e: number;
-    f: number;
     m11: number;
     m12: number;
     m13: number;
@@ -219,14 +206,26 @@ export class DOMMatrix extends DOMMatrixReadOnly {
     m42: number;
     m43: number;
     m44: number;
-    
-    constructor(arg?: number[] | DOMMatrixReadOnly) {
-        if (!arg) {
+    get a(): number { return this.m11; }
+    set a(value: number) { this.m11 = value; }
+    get b(): number { return this.m12; }
+    set b(value: number) { this.m12 = value; }
+    get c(): number { return this.m21; }
+    set c(value: number) { this.m21 = value; }
+    get d(): number { return this.m22; }
+    set d(value: number) { this.m22 = value; }
+    get e(): number { return this.m41; }
+    set e(value: number) { this.m41 = value; }
+    get f(): number { return this.m42; }
+    set f(value: number) { this.m42 = value; }
+
+    constructor(init?: number[] | DOMMatrixReadOnly) {
+        if (!init) {
             super([1, 0, 0, 1, 0, 0]);
-        } else if (arg instanceof DOMMatrixReadOnly) {
-            super(arg.toArray());
+        } else if (init instanceof DOMMatrixReadOnly) {
+            super(init.toArray());
         } else {
-            super(arg);
+            super(init);
         }
     }
 
@@ -240,12 +239,6 @@ export class DOMMatrix extends DOMMatrixReadOnly {
                     .reduce((a, v) => a + v);
             }
         }
-        this.a = this.m11;
-        this.b = this.m12;
-        this.c = this.m21;
-        this.d = this.m22;
-        this.e = this.m41;
-        this.f = this.m42;
         return this;
     }
 
@@ -253,14 +246,14 @@ export class DOMMatrix extends DOMMatrixReadOnly {
         return other.multiply(this);
     }
 
-    translateSelf(tx: number, ty: number, tz: number = 0): DOMMatrix { // tz = 0
+    translateSelf(tx: number, ty: number, tz: number = 0): DOMMatrix {
         this.multiplySelf(new DOMMatrix([
             1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, tx, ty, tz, 1
         ]));
         return this;
     }
 
-    scaleSelf(scale: number, originX: number = 0, originY: number = 0): DOMMatrix { // last 2 = 0
+    scaleSelf(scale: number, originX: number = 0, originY: number = 0): DOMMatrix {
         this.translateSelf(originX, originY);
         this.multiplySelf(new DOMMatrix([
             scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
@@ -269,7 +262,7 @@ export class DOMMatrix extends DOMMatrixReadOnly {
         return this;
     }
 
-    scale3dSelf(scale: number, originX: number = 0, originY: number = 0, originZ: number = 0): DOMMatrix { // last 3 = 0
+    scale3dSelf(scale: number, originX: number = 0, originY: number = 0, originZ: number = 0): DOMMatrix {
         this.translateSelf(originX, originY, originZ);
         this.multiplySelf(new DOMMatrix([
             scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, 1
