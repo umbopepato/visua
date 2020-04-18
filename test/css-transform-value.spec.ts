@@ -4,6 +4,7 @@ import {CSSTranslate} from '../src/cssom/css-translate';
 import {CSS} from '../src/cssom/css';
 import {CSSRotate} from '../src/cssom/css-rotate';
 import {CSSSkew} from '../src/cssom/css-skew';
+import {DOMMatrix} from "../src/cssom/dom-matrix";
 
 
 describe('CSSTransformValue', () => {
@@ -53,24 +54,8 @@ describe('CSSTransformValue', () => {
     describe('#toMatrix()', () => {
 
         it('should convert all the components to matrix and multiply them', () => {
-            expect(transformValue.toMatrix().toArray()).to.be.deep.equal([
-                0.9217681046041427,
-                0.3912673467897191,
-                0,
-                0,
-                -0.30920535392210763,
-                0.9516362273725186,
-                0,
-                0,
-                0,
-                0,
-                1,
-                0,
-                10,
-                20,
-                0,
-                1,
-            ]);
+            console.log(transformValue);
+            expect(transformValue.toMatrix()).to.be.deep.equal(new DOMMatrix([0.9217681046041427, 0.39126734678971914, -0.3092053539221077, 0.9516362273725186, 10, 20]));
         });
 
     });

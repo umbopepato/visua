@@ -18,7 +18,7 @@ export class CSSScale implements CSSTransformComponent {
         const x = (this.x as CSSUnitValue).value;
         const y = (this.y as CSSUnitValue).value;
         const z = (this.z as CSSUnitValue).value;
-        return new DOMMatrix().scaleNonUniformSelf(x, y, z);
+        return new DOMMatrix().scaleSelf(x, y, z);
     }
 
     constructor(x: CSSNumberish, y: CSSNumberish, z?: CSSNumberish) {

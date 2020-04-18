@@ -1,4 +1,33 @@
-import {toRad} from '../util';
+import {toDeg, toRad} from '../util';
+
+export interface DOMMatrix2DInit {
+    a?: number;
+    b?: number;
+    c?: number;
+    d?: number;
+    e?: number;
+    f?: number;
+    m11?: number;
+    m12?: number;
+    m21?: number;
+    m22?: number;
+    m41?: number;
+    m42?: number;
+}
+
+export interface DOMMatrixInit extends DOMMatrix2DInit {
+    m13?: number;
+    m14?: number;
+    m23?: number;
+    m24?: number;
+    m31?: number;
+    m32?: number;
+    m33?: number;
+    m34?: number;
+    m43?: number;
+    m44?: number;
+    is2D?: boolean;
+}
 
 export class DOMMatrixReadOnly {
 
@@ -18,24 +47,42 @@ export class DOMMatrixReadOnly {
     readonly m42: number;
     readonly m43: number;
     readonly m44: number;
-    get a(): number { return this.m11; }
-    get b(): number { return this.m12; }
-    get c(): number { return this.m21; }
-    get d(): number { return this.m22; }
-    get e(): number { return this.m41; }
-    get f(): number { return this.m42; }
+
+    get a(): number {
+        return this.m11;
+    }
+
+    get b(): number {
+        return this.m12;
+    }
+
+    get c(): number {
+        return this.m21;
+    }
+
+    get d(): number {
+        return this.m22;
+    }
+
+    get e(): number {
+        return this.m41;
+    }
+
+    get f(): number {
+        return this.m42;
+    }
 
     get is2D(): boolean {
         return this.m13 === 0 &&
-          this.m14 === 0 &&
-          this.m23 === 0 &&
-          this.m24 === 0 &&
-          this.m31 === 0 &&
-          this.m32 === 0 &&
-          this.m33 === 1 &&
-          this.m34 === 0 &&
-          this.m43 === 0 &&
-          this.m44 === 1;
+            this.m14 === 0 &&
+            this.m23 === 0 &&
+            this.m24 === 0 &&
+            this.m31 === 0 &&
+            this.m32 === 0 &&
+            this.m33 === 1 &&
+            this.m34 === 0 &&
+            this.m43 === 0 &&
+            this.m44 === 1;
     }
 
     get isIdentity(): boolean {
@@ -48,7 +95,7 @@ export class DOMMatrixReadOnly {
         return true;
     }
 
-    constructor(sequence: number[]) {
+    constructor(sequence: number[] = [1, 0, 0, 1, 0, 0]) {
         if (sequence.length != 6 && sequence.length != 16) {
             throw new RangeError('Failed to construct DOMMatrix: Expecting 6 or 16 entries in sequence');
         }
@@ -94,6 +141,39 @@ export class DOMMatrixReadOnly {
         }
     }
 
+    static fromMatrix(other: DOMMatrixInit): DOMMatrixReadOnly {
+        const els2D = [['a', 'm11'], ['b', 'm12'], ['c', 'm21'], ['d', 'm22'], ['e', 'm41'], ['f', 'm42']];
+        const els3D = ['m13', 'm14', 'm23', 'm24', 'm31', 'm32', 'm33', 'm34', 'm43', 'm44'];
+        if (els2D.some(([a, m]) => a in other && m in other && other[a] !== other[m] &&
+            !(isNaN(other[a]) && isNaN(other[m])))) {
+            throw new TypeError('Failed to execute \'fromMatrix\' on \'DOMMatrixReadOnly\': Property mismatch on matrix initialization.');
+        }
+        els2D.forEach(([a, m]) => {
+            if (!(m in other)) other[m] = other[a] != null ? other[a] : Number(isOnDiagonal(m));
+        });
+        if (other.is2D != null && other.is2D && els3D.some(e => e in other && other[e] !== Number(isOnDiagonal(e)))) {
+            throw new TypeError('Failed to execute \'fromMatrix\' on \'DOMMatrixReadOnly\': The is2D member is set to true but the input matrix is a 3d matrix.');
+        }
+        return new DOMMatrixReadOnly([
+            other.m11,
+            other.m12,
+            other.m13,
+            other.m14,
+            other.m21,
+            other.m22,
+            other.m23,
+            other.m24,
+            other.m31,
+            other.m32,
+            other.m33,
+            other.m34,
+            other.m41,
+            other.m42,
+            other.m43,
+            other.m44,
+        ]);
+    }
+
     translate(tx: number, ty: number, tz: number = 0): DOMMatrix {
         let result = new DOMMatrix(this);
         result.translateSelf(tx, ty, tz);
@@ -114,7 +194,7 @@ export class DOMMatrixReadOnly {
 
     scaleNonUniform(scaleX: number, scaleY: number = 1, scaleZ: number = 1, originX: number = 0, originY: number = 0, originZ: number = 0): DOMMatrix {
         let result = new DOMMatrix(this);
-        result.scaleNonUniformSelf(scaleX, scaleY, scaleZ, originX, originY, originZ);
+        result.scaleSelf(scaleX, scaleY, scaleZ, originX, originY, originZ);
         return result;
     }
 
@@ -206,22 +286,58 @@ export class DOMMatrix extends DOMMatrixReadOnly {
     m42: number;
     m43: number;
     m44: number;
-    get a(): number { return this.m11; }
-    set a(value: number) { this.m11 = value; }
-    get b(): number { return this.m12; }
-    set b(value: number) { this.m12 = value; }
-    get c(): number { return this.m21; }
-    set c(value: number) { this.m21 = value; }
-    get d(): number { return this.m22; }
-    set d(value: number) { this.m22 = value; }
-    get e(): number { return this.m41; }
-    set e(value: number) { this.m41 = value; }
-    get f(): number { return this.m42; }
-    set f(value: number) { this.m42 = value; }
+
+    get a(): number {
+        return this.m11;
+    }
+
+    set a(value: number) {
+        this.m11 = value;
+    }
+
+    get b(): number {
+        return this.m12;
+    }
+
+    set b(value: number) {
+        this.m12 = value;
+    }
+
+    get c(): number {
+        return this.m21;
+    }
+
+    set c(value: number) {
+        this.m21 = value;
+    }
+
+    get d(): number {
+        return this.m22;
+    }
+
+    set d(value: number) {
+        this.m22 = value;
+    }
+
+    get e(): number {
+        return this.m41;
+    }
+
+    set e(value: number) {
+        this.m41 = value;
+    }
+
+    get f(): number {
+        return this.m42;
+    }
+
+    set f(value: number) {
+        this.m42 = value;
+    }
 
     constructor(init?: number[] | DOMMatrixReadOnly) {
         if (!init) {
-            super([1, 0, 0, 1, 0, 0]);
+            super();
         } else if (init instanceof DOMMatrixReadOnly) {
             super(init.toArray());
         } else {
@@ -229,13 +345,16 @@ export class DOMMatrix extends DOMMatrixReadOnly {
         }
     }
 
+    static fromMatrix(other: DOMMatrixInit) {
+        return new DOMMatrix(DOMMatrixReadOnly.fromMatrix(other));
+    }
+
     multiplySelf(other: DOMMatrix): DOMMatrix {
         let origThis = new DOMMatrix(this);
-        let origOther = new DOMMatrix(other);
         for (let c = 1; c < 5; c++) {
             for (let r = 1; r < 5; r++) {
                 this[`m${c}${r}`] = [1, 2, 3, 4]
-                    .map(i => origThis[`m${i}${r}`] * origOther[`m${c}${i}`])
+                    .map(i => origThis[`m${i}${r}`] * other[`m${c}${i}`])
                     .reduce((a, v) => a + v);
             }
         }
@@ -246,33 +365,17 @@ export class DOMMatrix extends DOMMatrixReadOnly {
         return other.multiply(this);
     }
 
-    translateSelf(tx: number, ty: number, tz: number = 0): DOMMatrix {
+    translateSelf(tx: number = 0, ty: number = 0, tz: number = 0): DOMMatrix {
         this.multiplySelf(new DOMMatrix([
             1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, tx, ty, tz, 1
         ]));
         return this;
     }
 
-    scaleSelf(scale: number, originX: number = 0, originY: number = 0): DOMMatrix {
-        this.translateSelf(originX, originY);
-        this.multiplySelf(new DOMMatrix([
-            scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
-        ]));
-        this.translateSelf(-originX, -originY);
-        return this;
-    }
-
-    scale3dSelf(scale: number, originX: number = 0, originY: number = 0, originZ: number = 0): DOMMatrix {
-        this.translateSelf(originX, originY, originZ);
-        this.multiplySelf(new DOMMatrix([
-            scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, 1
-        ]));
-        this.translateSelf(-originX, -originY, -originZ);
-        return this;
-    }
-
-    scaleNonUniformSelf(scaleX: number, scaleY: number = 1, scaleZ: number = 1, originX: number = 0, originY: number = 0, originZ: number = 0): DOMMatrix { // 1 1 0 0 last
-        this.translateSelf(originX, originY, originZ);
+    scaleSelf(scaleX: number = 1, scaleY?: number, scaleZ: number = 1, originX: number = 0, originY: number = 0, originZ: number = 0): DOMMatrix {
+        if (scaleY == null) { // noinspection JSSuspiciousNameCombination
+            scaleY = scaleX;
+        }
         this.multiplySelf(new DOMMatrix([
             scaleX, 0, 0, 0, 0, scaleY, 0, 0, 0, 0, scaleZ, 0, 0, 0, 0, 1
         ]));
@@ -280,50 +383,94 @@ export class DOMMatrix extends DOMMatrixReadOnly {
         return this;
     }
 
-    rotateSelf(angle: number, originX: number = 0, originY: number = 0): DOMMatrix { // last 2 = 0
-        this.translateSelf(originX, originY);
-        angle = toRad(angle);
-        const sin = Math.sin(angle / 2);
-        const sc = sin * Math.cos(angle / 2);
-        const sq = sin * sin;
+    scale3dSelf(scale: number = 1, originX: number = 0, originY: number = 0, originZ: number = 0): DOMMatrix {
+        this.translateSelf(originX, originY, originZ);
         this.multiplySelf(new DOMMatrix([
-            1 - 2 * sq, 2 * sc, 0, 0, -2 * sc, 1 - 2 * sq, 0, 0, 0, 0, 1 - 2 * sq, 0, 0, 0, 0, 1
+            scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, 1
         ]));
-        this.translateSelf(-originX, -originY);
+        this.translateSelf(-originX, -originY, -originZ);
+        this.rotateSelf(1,2);
         return this;
     }
 
-    rotateFromVectorSelf(x: number, y: number): DOMMatrix {
-        const PI2 = Math.PI * 2;
-        let angle = Math.atan2(y, x);
-        angle = (PI2 + angle) % PI2;
-        const sin = Math.sin(angle / 2);
-        const sc = sin * Math.cos(angle / 2);
-        const sq = sin * sin;
-        this.multiplySelf(new DOMMatrix([
-            1 - 2 * sq, 2 * sc, 0, 0, -2 * sc, 1 - 2 * sq, 0, 0, 0, 0, 1 - 2 * sq, 0, 0, 0, 0, 1
-        ]));
+    /**
+     * Rotates the current matrix by `angle` around the z axis
+     * @param angle The angle of rotation, in degrees
+     */
+    rotateSelf(angle: number): DOMMatrix;
+    /**
+     * Rotates the current matrix around the x and y axes
+     * respectively by `rotX` and `rotY`
+     * @param rotX The angle of rotation on the x axis, in degrees
+     * @param rotY The angle of rotation on the y axis, in degrees
+     */
+    rotateSelf(rotX: number, rotY: number): DOMMatrix;
+    /**
+     * Rotates the current matrix around the x, y and z axes
+     * respectively by `rotX`, `rotY` and `rotZ`
+     * @param rotX The angle of rotation on the x axis, in degrees
+     * @param rotY The angle of rotation on the y axis, in degrees
+     * @param rotZ The angle of rotation on the z axis, in degrees
+     */
+    rotateSelf(rotX: number, rotY: number, rotZ: number): DOMMatrix;
+    rotateSelf(rotX: number = 0, rotY?: number, rotZ?: number): DOMMatrix {
+        if (rotY == null && rotZ == null) {
+            rotZ = rotX;
+            rotX = rotY = 0;
+        }
+        if (rotY == null) rotY = 0;
+        if (rotZ == null) rotZ = 0;
+        if (rotZ) this.rotateAxisAngleSelf(0, 0, 1, rotZ);
+        if (rotY) this.rotateAxisAngleSelf(0, 1, 0, rotY);
+        if (rotX) this.rotateAxisAngleSelf(1, 0, 0, rotX);
         return this;
     }
 
-    rotateAxisAngleSelf(x: number, y: number, z: number, angle: number): DOMMatrix {
+    /**
+     * Rotates the current matrix by the angle of the direction
+     * of the vector (x, y)
+     * @param x The x coordinate of the vector
+     * @param y The y coordinate of the vector
+     */
+    rotateFromVectorSelf(x: number = 0, y: number = 0): DOMMatrix {
+        this.rotateAxisAngleSelf(0, 0, 1, toDeg(Math.atan2(y, x)));
+        return this;
+    }
+
+    /**
+     * Rotates the current matrix by `angle` around the vector
+     * of components `x`, `y` and `z`
+     * @link https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
+     * @param x The x component of the axis
+     * @param y The y component of the axis
+     * @param z The z component of the axis
+     * @param angle The angle of rotation in degrees
+     */
+    rotateAxisAngleSelf(x: number = 0, y: number = 0, z: number = 0, angle: number = 0): DOMMatrix {
+        if (angle === 0) return this;
+        const length = Math.sqrt(x**2 + y**2 + z**2);
+        if (length === 0) return this;
         angle = toRad(angle);
-        const sin = Math.sin(angle / 2);
-        const sc = sin * Math.cos(angle / 2);
-        const sq = sin * sin;
+        x /= length;
+        y /= length;
+        z /= length;
+        const sin = Math.sin(angle);
+        const cos = Math.cos(angle);
+        const ocos = 1 - cos;
         this.multiplySelf(new DOMMatrix([
-            1 - 2 * (y * y + z * z) * sq,
-            2 * (x * y * sq + z * sc),
-            2 * (x * z * sq - y * sc),
+            cos + x**2 * ocos,
+            y * x * ocos + z * sin,
+            z * x * ocos - y * sin,
             0,
-            2 * (x * y * sq - z * sc),
-            1 - 2 * (x * x + z * z) * sq,
-            2 * (y * z * sq + x * sc),
+            x * y * ocos - z * sin,
+            cos + y**2 * ocos,
+            z * y * ocos + x * sin,
             0,
-            2 * (x * z * sq + y * sc),
-            2 * (y * x * sq - x * sc),
-            1 - 2 * (x * x + y * y) * sq,
-            0, 0, 0, 0, 1
+            x * z * ocos + y * sin,
+            y * z * ocos - x * sin,
+            cos + z**2 * ocos,
+            0,
+            0, 0, 0, 1,
         ]));
         return this;
     }
@@ -343,3 +490,5 @@ export class DOMMatrix extends DOMMatrixReadOnly {
     }
 
 }
+
+const isOnDiagonal = (matrixElementName: string) => matrixElementName.match(/(\d)\1/) != null;

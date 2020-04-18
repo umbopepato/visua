@@ -27,7 +27,11 @@ export const mod = (num: number, mod: number) => {
     return ((num % mod) + mod) % mod;
 };
 
-export const toRad = (angle: number): number => angle * Math.PI / 180;
+const DEG2RAD = Math.PI / 180;
+
+export const toRad = (angle: number): number => angle * DEG2RAD;
+
+export const toDeg = (angle: number): number => angle / DEG2RAD;
 
 export const warnAt = (message: string, location: CssLocation) => {
     logger.warn(`${message}\n    at ${location.source}:${location.start.line}:${location.start.column}`);
