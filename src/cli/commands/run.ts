@@ -71,3 +71,5 @@ export const run = (options, args: string[]) => {
         }
     }
 };
+
+const test = (thing: any): thing is string => true;

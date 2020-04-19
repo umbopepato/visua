@@ -15,7 +15,6 @@ export class CSSUnitValue extends CSSNumericValue {
 
     private resolveValue(value): number {
         if (Number.isNaN(value) || Math.abs(value) === Infinity) {
-            console.log('Invalid value', value);
             throw new TypeError(`Failed to set the 'value' property on 'CSSUnitValue': Invalid value ${value}`);
         }
         return Number(value);

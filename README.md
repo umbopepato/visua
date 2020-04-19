@@ -1,6 +1,6 @@
-# <img src="logo.png" width="100" height="100"> Visua
+# <img src="logo.png" width="80" height="80"> Visua
 
-A tool to describe brand identities using CSS
+A brand identity automation toolset based on CSS
 
 ![npm version](https://img.shields.io/npm/v/visua.svg)
 ![Build](https://img.shields.io/circleci/project/github/umbopepato/visua/master.svg)

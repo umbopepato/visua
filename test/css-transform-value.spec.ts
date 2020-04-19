@@ -54,7 +54,6 @@ describe('CSSTransformValue', () => {
     describe('#toMatrix()', () => {
 
         it('should convert all the components to matrix and multiply them', () => {
-            console.log(transformValue);
             expect(transformValue.toMatrix()).to.be.deep.equal(new DOMMatrix([0.9217681046041427, 0.39126734678971914, -0.3092053539221077, 0.9516362273725186, 10, 20]));
         });
 

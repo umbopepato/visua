@@ -4,7 +4,7 @@
   "description": "A tool to describe brand design systems using standard CSS",
   "main": "dist/visua.js",
   "scripts": {
-    "test": "nyc mocha -r ts-node/register test/**/*.spec.ts",
+    "test": "nyc -r none mocha -r ts-node/register -R progress test/**/*.spec.ts",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "build": "tsc",
     "build:watch": "tsc -w",

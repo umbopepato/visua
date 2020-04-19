@@ -157,11 +157,11 @@ export class DOMMatrixReadOnly implements DOMMatrixInit {
      */
     constructor(sequence: number[] = [1, 0, 0, 1, 0, 0]) {
         if (sequence.length != 6 && sequence.length != 16) {
-            throw new RangeError('Failed to construct DOMMatrix: Expecting 6 or 16 entries in sequence');
+            throw new RangeError('Failed to construct \'DOMMatrix\': Expecting 6 or 16 entries in sequence');
         }
         for (let i = 0; i < sequence.length; i++) {
             if (typeof sequence[i] != 'number') {
-                throw new TypeError(`Failed to construct DOMMatrix: Argument at index ${i} is not of type 'number'`);
+                throw new TypeError(`Failed to construct \'DOMMatrix\': Argument at index ${i} is not of type 'number'`);
             }
         }
         if (sequence.length == 6) {
@@ -218,6 +218,7 @@ export class DOMMatrixReadOnly implements DOMMatrixInit {
         if (other.is2D != null && other.is2D && els3D.some(e => e in other && other[e] !== Number(isOnDiagonal(e)))) {
             throw new TypeError('Failed to execute \'fromMatrix\' on \'DOMMatrixReadOnly\': The is2D member is set to true but the input matrix is a 3d matrix.');
         }
+        els3D.forEach(m => other[m] = other[m] != null ? other[m] : Number(isOnDiagonal(m)));
         return new DOMMatrixReadOnly([
             other.m11,
             other.m12,
@@ -392,7 +393,7 @@ export class DOMMatrixReadOnly implements DOMMatrixInit {
      */
     toString(): string {
         return this.is2D
-            ? `matrix(${this.a}, ${this.b}, ${this.c}, ${this.d}, ${this.e}, ${this.f})`
+            ? `matrix(${[this.a, this.b, this.c, this.d, this.e, this.f].join(', ')})`
             : `matrix3d(${[this.m11, this.m12, this.m13, this.m14, this.m21, this.m22, this.m23, this.m24, this.m41, this.m42, this.m43, this.m44].join(', ')})`;
     }
 
@@ -533,6 +534,7 @@ export class DOMMatrix extends DOMMatrixReadOnly {
         if (scaleY == null) { // noinspection JSSuspiciousNameCombination
             scaleY = scaleX;
         }
+        this.translateSelf(originX, originY, originZ);
         this.multiplySelf(new DOMMatrix([
             scaleX, 0, 0, 0, 0, scaleY, 0, 0, 0, 0, scaleZ, 0, 0, 0, 0, 1
         ]));
@@ -553,7 +555,6 @@ export class DOMMatrix extends DOMMatrixReadOnly {
             scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, 1
         ]));
         this.translateSelf(-originX, -originY, -originZ);
-        this.rotateSelf(1, 2);
         return this;
     }
 

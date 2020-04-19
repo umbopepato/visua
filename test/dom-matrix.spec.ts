@@ -9,10 +9,10 @@ describe('DOMMatrix', () => {
         });
     });
 
-    describe('isIdentity', () => {
-        it('should return true if the matrix is an identity matrix', () => {
-            expect(new DOMMatrix([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]).isIdentity).to.be.equal(true);
-            expect(new DOMMatrix([1, 0, 1, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]).isIdentity).to.be.equal(false);
+    describe('#fromMatrix', () => {
+        it('should create a DOMMatrix from a DOMMatrixInit object', () => {
+            expect(DOMMatrix.fromMatrix({a: 1, b: 0, c: 0, d: 1, e: 0, f: 0}))
+                .to.be.deep.equal(new DOMMatrix([1, 0, 0, 1, 0, 0]));
         });
     });
 
@@ -40,12 +40,29 @@ describe('DOMMatrix', () => {
         });
     });
 
+    describe('#translateSelf()', () => {
+        it('should translate the current matrix by tx, ty and tz', () => {
+            expect(new DOMMatrix([1, 0, 0, 1, 0, 0])
+                .preMultiplySelf(new DOMMatrix([1, 2, 3, 4, 5, 6])))
+                .to.be.deep.equal(new DOMMatrix([1, 2, 3, 4, 5, 6]));
+        });
+    });
 
+    describe('#scaleSelf()', () => {
+        it('should scale the current matrix by scaleX, scaleY and scaleZ around the origin', () => {
+            expect(new DOMMatrix([1, 2, 3, 4, 5, 6])
+                .scaleSelf(1, 2, 3, 1, 1, 1))
+                .to.be.deep.equal(new DOMMatrix([1, 2, 0, 0, 6, 8, 0, 0, 0, 0, 3, 0, 2, 2, -2, 1]));
+        });
+    });
 
-
-
-
-
+    describe('#scale3dSelf()', () => {
+        it('should scale the current matrix by scale around the origin', () => {
+            expect(new DOMMatrix([1, 2, 3, 4, 5, 6])
+                .scale3dSelf(2, 1, 1, 1))
+                .to.be.deep.equal(new DOMMatrix([2, 4, 0, 0, 6, 8, 0, 0, 0, 0, 2, 0, 1, 0, -1, 1]));
+        });
+    });
 
     describe('#rotateSelf()', () => {
         it('should rotate the current matrix by rotX, rotY and rotZ', () => {
@@ -68,6 +85,42 @@ describe('DOMMatrix', () => {
             expect(new DOMMatrix([1, 2, 3, 4, 5, 6])
                 .rotateAxisAngleSelf(1, 1, 1, 30))
                 .to.be.deep.equal(new DOMMatrix([1.9106836025229592, 3.1547005383792515, -0.24401693585629242, 0, 2.488033871712585, 3.1547005383792515, 0.3333333333333333, 0, -0.3987174742355439, -0.30940107675850304, 0.9106836025229591, 0, 5, 6, 0, 1]));
+        });
+    });
+
+    describe('#skewXSelf()', () => {
+        it('should skew the current matrix by `sx`', () => {
+            expect(new DOMMatrix([1, 2, 3, 4, 5, 6])
+                .skewXSelf(30))
+                .to.be.deep.equal(new DOMMatrix([1, 2, 3.5773502691896257, 5.1547005383792515, 5, 6]));
+        });
+    });
+
+    describe('#skewYSelf()', () => {
+        it('should skew the current matrix by `sy`', () => {
+            expect(new DOMMatrix([1, 2, 3, 4, 5, 6])
+                .skewYSelf(30))
+                .to.be.deep.equal(new DOMMatrix([2.7320508075688767, 4.309401076758503, 3, 4, 5, 6]));
+        });
+    });
+
+    describe('#invertSelf()', () => {
+        it('should invert the current matrix', () => {
+            expect(new DOMMatrix([1, 2, 3, 4, 5, 6])
+                .invertSelf())
+                .to.be.deep.equal(new DOMMatrix([-2, 1, 1.5, -0.5, 1, -2]));
+        });
+    });
+
+});
+
+describe('DOMMatrixReadonly', () => {
+
+
+    describe('#isIdentity', () => {
+        it('should return true if the matrix is an identity matrix', () => {
+            expect(new DOMMatrix([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]).isIdentity).to.be.equal(true);
+            expect(new DOMMatrix([1, 0, 1, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]).isIdentity).to.be.equal(false);
         });
     });
 

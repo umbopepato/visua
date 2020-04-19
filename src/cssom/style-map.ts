@@ -10,7 +10,7 @@ export interface StyleMapEntry {
 }
 
 /**
- * The style map containing all the css variables defined in the parsed identity css files
+ * The style map containing all the css variables defined in the identity files
  */
 export class StyleMap {
 

@@ -71,7 +71,6 @@ export class CSSPositionValue extends CSSStyleValue {
     }
 
     private setXorYFromSingleValue(value: CSSStyleValue) {
-        console.log('Value', value, value instanceof CSSKeywordValue);
         if (value instanceof CSSKeywordValue) {
             if (value.value === 'left' && this.bias.valueOf() !== Bias.VERTICAL) {
                 this.x = CSS.percent(0);
