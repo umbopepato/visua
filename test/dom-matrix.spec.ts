@@ -30,7 +30,7 @@ describe('DOMMatrixReadonly', () => {
     describe('#is2D', () => {
         it('should return true if the matrix represents a 2D transform', () => {
             expect(new DOMMatrixReadOnly([1, 2, 3, 4, 5, 6]).is2D).to.be.equal(true);
-            expect(new DOMMatrixReadOnly([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]).is2D).to.be.equal(false);
+            expect(new DOMMatrixReadOnly([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]).is2D).to.be.equal(false);
         });
     });
 
@@ -133,7 +133,7 @@ describe('DOMMatrixReadonly', () => {
         it('should convert the current matrix to an array', () => {
             expect(new DOMMatrix([1, 2, 3, 4, 5, 6])
                 .toArray())
-                .to.be.equal([1, 2, 0, 0, 3, 4, 0, 0, 0, 0, 1, 0, 5, 6, 0, 1]);
+                .to.be.deep.equal([1, 2, 0, 0, 3, 4, 0, 0, 0, 0, 1, 0, 5, 6, 0, 1]);
         });
     });
 
