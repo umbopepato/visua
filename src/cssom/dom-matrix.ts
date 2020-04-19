@@ -240,6 +240,14 @@ export class DOMMatrixReadOnly implements DOMMatrixInit {
     }
 
     /**
+     * Returns a new `DOMMatrix` result of the dot product between the current matrix and `other`
+     * @param other The matrix to be post-multiplied
+     */
+    multiply(other: DOMMatrix): DOMMatrix {
+        return new DOMMatrix(this).multiplySelf(other);
+    }
+
+    /**
      * Returns a new `DOMMatrix` result of the translation of the current matrix by the vector (tx, ty, tz)
      * @param tx The x coordinate of the translation vector
      * @param ty The y coordinate of the translation vector
@@ -332,14 +340,6 @@ export class DOMMatrixReadOnly implements DOMMatrixInit {
      */
     skewY(sy: number = 0): DOMMatrix {
         return new DOMMatrix(this).skewYSelf(sy);
-    }
-
-    /**
-     * Returns a new `DOMMatrix` result of the dot product between the current matrix and `other`
-     * @param other The matrix to be post-multiplied
-     */
-    multiply(other: DOMMatrix): DOMMatrix {
-        return new DOMMatrix(this).multiplySelf(other);
     }
 
     /**
@@ -436,24 +436,48 @@ export class DOMMatrix extends DOMMatrixReadOnly {
     m43: number;
     m44: number;
 
+    get a(): number {
+        return this.m11;
+    }
+
     set a(value: number) {
         this.m11 = value;
+    }
+
+    get b(): number {
+        return this.m12;
     }
 
     set b(value: number) {
         this.m12 = value;
     }
 
+    get c(): number {
+        return this.m21;
+    }
+
     set c(value: number) {
         this.m21 = value;
+    }
+
+    get d(): number {
+        return this.m22;
     }
 
     set d(value: number) {
         this.m22 = value;
     }
 
+    get e(): number {
+        return this.m41;
+    }
+
     set e(value: number) {
         this.m41 = value;
+    }
+
+    get f(): number {
+        return this.m42;
     }
 
     set f(value: number) {
