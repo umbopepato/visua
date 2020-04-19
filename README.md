@@ -1,6 +1,4 @@
-<img src="logo.png" width="150" height="150">
-
-# Visua
+# <img src="logo.png" width="100" height="100"> Visua
 
 A tool to describe brand identities using CSS
 
